@@ -1,0 +1,23 @@
+#!/bin/bash
+
+## log in to get auth cred, password will be taken from encrypted file pass.enc
+
+set -e
+
+dir="$(dirname "$0")"
+openssl enc -aes-256-cbc -d -in "$dir/pass.enc" -out pass
+pass="$(cat pass)"
+rm pass
+curl -X POST https://api.cert.tastyworks.com/sessions \
+  -H "Content-Type: application/json" \
+  -H "User-Agent: dude-bro" \
+  -d "{ \"login\": \"tmcsandbox\", \"password\": \"$pass\", \"remember-me\": false } " | tee response
+
+sessionTok="$(cat response | jq ".data.\"session-token\"" | sed 's/"//g')"
+externalId="$(cat response | jq ".data.user.\"external-id\"" | sed 's/"//g')"
+
+echo "sessionTok: $sessionTok" >  tokens
+echo "externalId: $externalId" >> tokens
+echo ""
+
+rm response

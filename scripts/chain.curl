@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -ex
+
+acct="$(cat acctnum)"
+url="api.tastyworks.com/accounts/$acct/positions"
+session="$(cat tokens | grep sessionTok | sed 's/sessionTok: //')"
+
+echo "acct $acct"
+echo "url $url"
+echo "session $session"
+
+curl --location --globoff "https://api.cert.tastyworks.com/option-chains/AAPL" \
+	--header 'Accept: application/json' \
+	--header 'Content-Type: application/json' \
+	--header "Authorization: $session" | tee tmp
+cat tmp | jq .
+rm tmp

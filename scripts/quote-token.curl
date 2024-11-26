@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -ex
+
+session="$(cat tokens | grep sessionTok | sed 's/sessionTok: //')"
+curl --location --globoff "https://api.cert.tastyworks.com/api-quote-tokens" \
+	--header 'Accept: application/json' \
+	--header 'Content-Type: application/json' \
+	--header 'User-Agent: dorgachev' \
+	--header "Authorization: $session" | tee tmp
+
+echo "token: $(cat tmp | jq .data.token | sed 's/"//g')" > dxlink
+echo "url: $(cat tmp | jq .data.\"dxlink-url\" | sed 's/"//g')" >> dxlink
+
+rm tmp

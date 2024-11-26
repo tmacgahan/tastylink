@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -ex
+
+acct="$(cat acctnum)"
+url="api.tastyworks.com/accounts/$acct/positions"
+#url="api.tastyworks.com/instruments/cryptocurrencies"
+session="$(cat tokens | grep sessionTok | sed 's/sessionTok: //')"
+
+echo "acct $acct"
+echo "url $url"
+echo "session $session"
+
+#curl -X GET "$url" \
+#  -H "Content-Type: application/json" \
+#  -H "User-Agent: dude-bro" \
+#  -H "Authorization: $session"
+
+curl --location "https://api.cert.tastyworks.com/accounts/$acct/positions" \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--header "Authorization: $session" | tee tmp
+cat tmp | jq .
+rm tmp
