@@ -3,6 +3,8 @@ import * as O from 'fp-ts/Option';
 import { pipe } from 'fp-ts/function';
 import fetch from 'node-fetch';
 
+// convert options to eithers
+
 function tastyURL(): string { return "https://api.cert.tastyworks.com/sessions"; }
 function tokenURL(): string { return "https://api.cert.tastyworks.com/api-quote-tokens"; }
 function apiLogin(): string { return "tmcsandbox"; }
