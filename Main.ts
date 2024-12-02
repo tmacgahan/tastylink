@@ -1,6 +1,6 @@
 //import { argv } from 'process';
 //import { some } from 'fp-ts/lib/ReadonlyRecord';
-import { TastyConfig } from './TastyConfig'
+import { TastyConfig } from './Tasty/TastyConfig'
 import * as Option from 'fp-ts/Option'
 import { identity, pipe } from 'fp-ts/function'
 
