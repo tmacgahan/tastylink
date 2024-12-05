@@ -14,7 +14,6 @@ function apiRememberFlag(): boolean { return false; }
 function loadPW(): string { return child.execSync('bash secrets/passdecode.sh').toString().replaceAll("\n", ""); }
 function getTastyToken(pw: string): T.TaskEither<Error, TastyLoginReply>{
     let apiUrl = tastyURL();
-
     let requestData = {
         method: 'POST',
         body: JSON.stringify({
@@ -28,8 +27,6 @@ function getTastyToken(pw: string): T.TaskEither<Error, TastyLoginReply>{
         }
     };
 
-    console.log(requestData);
-
     return T.tryCatch(
         () => fetch(apiUrl, requestData).then( resp => resp.json().then( json => json as TastyLoginReply ) ),
         reason => new Error(String(reason))
@@ -37,8 +34,6 @@ function getTastyToken(pw: string): T.TaskEither<Error, TastyLoginReply>{
 }
 
 function getDxToken(tastyToken: TastyLoginReply): T.TaskEither<Error, DxLoginReply> {
-        console.log( `getting dx token with tasty token: ${JSON.stringify(tastyToken)}` );
-        console.log( `the session token is: ${tastyToken.data['session-token']}` );
         let apiUrl = tokenURL();
         let requestData = {
             method: 'GET',

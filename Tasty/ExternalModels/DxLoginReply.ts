@@ -1,6 +1,6 @@
 export interface DxLoginReply {
     data: {
         token: string,
-        'dxlink-url': string
+        'dxlink-url': string,
     }
 }
