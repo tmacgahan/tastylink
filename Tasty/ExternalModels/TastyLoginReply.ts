@@ -1,4 +1,4 @@
-interface TastyLoginReply {
+export interface TastyLoginReply {
     data: {
         user: {
             email: string,

@@ -1,8 +1,7 @@
-//import { argv } from 'process';
-//import { some } from 'fp-ts/lib/ReadonlyRecord';
 import { TastyConfig } from './Tasty/TastyConfig'
-import * as Option from 'fp-ts/Option'
 import { identity, pipe } from 'fp-ts/function'
+import { GetTokens } from './Tasty/GetTokens'
+import * as E from 'fp-ts/Either'
 
 /*
 let argstr: Array<string> = argv.slice(2).map(elt => {
@@ -13,16 +12,11 @@ let argstr: Array<string> = argv.slice(2).map(elt => {
 // https://stackoverflow.com/questions/33858763/console-input-in-typescript
 // Define the API URL
 
-//let tastyConf = new TastyConfig();
-//tastyConf.connect();
 
-let result = pipe(
-    3,
-    (num) => { return num === 0 ? Option.none : Option.some(1/num); },
-    Option.match(
-        () => "undefined",
-        (aa) => `${aa}`
+let result = GetTokens()().then( result => pipe(
+    result,
+    E.match(
+        err => { throw(err) },
+        toks => { console.log(JSON.stringify(toks)) }
     )
-)
-
-console.log(result);
+));

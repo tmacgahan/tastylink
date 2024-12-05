@@ -1,9 +1,9 @@
-import * as child from 'child_process';
-import * as O from 'fp-ts/Option';
+import * as T from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/function';
+import { Tokens } from './ExternalModels/Tokens';
+import { DxLoginReply } from './ExternalModels/DxLoginReply';
+import { TastyLoginReply } from './ExternalModels/TastyLoginReply';
 import fetch from 'node-fetch';
-
-// convert options to eithers
 
 function tastyURL(): string { return "https://api.cert.tastyworks.com/sessions"; }
 function tokenURL(): string { return "https://api.cert.tastyworks.com/api-quote-tokens"; }
@@ -11,7 +11,7 @@ function apiLogin(): string { return "tmcsandbox"; }
 function apiRememberFlag(): boolean { return false; }
 
 function loadPW(): string { return child.execSync('bash secrets/passdecode.sh').toString().replaceAll("\n", ""); }
-async function getTastyToken(pw: string): O.Option<TastyLoginReply> {
+function getTastyToken(pw: string): T.TaskEither<Error, TastyLoginReply>{
     let apiUrl = tastyURL();
 
     let requestData = {
@@ -29,27 +29,15 @@ async function getTastyToken(pw: string): O.Option<TastyLoginReply> {
 
     console.log(requestData);
 
-    let loginCredential: O.Option<TastyLoginReply> = O.none;
-
-    let result = await fetch(apiUrl, requestData).then(response => {
-        if (!response.ok) {
-            console.error('Network response was not ok');
-            loginCredential = O.none;
-        }
-        return response.json();
-    }).then(data => {
-        let reply = data as TastyLoginReply;
-        console.log(`session token: ${reply.data['session-token']}`);
-        loginCredential = O.some(reply);
-    }).catch(error => {
-        console.error('Error:', error);
-        loginCredential = O.none;
-    });
-
-    console.log( `result: ${result}` );
+    return T.tryCatch(
+        () => fetch(apiUrl, requestData).then( resp => resp.json().then( json => json as TastyLoginReply ) ),
+        reason => new Error(String(reason))
+    )
 }
 
-async function getDxToken(tastyToken: TastyLoginReply): O.Option<DxLoginReply> {
+function getDxToken(tastyToken: TastyLoginReply): T.TaskEither<Error, DxLoginReply> {
+        console.log( `getting dx token with tasty token: ${JSON.stringify(tastyToken)}` );
+        console.log( `the session token is: ${tastyToken.data['session-token']}` );
         let apiUrl = tokenURL();
         let requestData = {
             method: 'POST', // am I really a post ?
@@ -58,42 +46,27 @@ async function getDxToken(tastyToken: TastyLoginReply): O.Option<DxLoginReply> {
               'Content-type': 'application/json; charset=UTF-8',
               'Accept': 'application/json',
               'User-Agent': 'Dude-Bro',
-              'Authorization': `${tastyToken}`,
+              'Authorization': `${tastyToken.data['session-token']}`,
             }
         };
 
-        let loginCredential: O.Option<DxLoginReply> = O.none;
+    return T.tryCatch(
+        () => fetch(apiUrl, requestData).then( resp => resp.json().then( json => json as DxLoginReply ) ),
+        reason => new Error(String(reason))
+    )
+}
 
-        let result = await fetch(apiUrl, requestData).then(response => {
-            if (!response.ok) {
-                console.error('Network response was not ok');
-                loginCredential = O.none;
-            }
-            return response.json();
-        }).then(data => {
-            let reply = data as DxLoginReply;
-            console.log(`session token: ${reply.data.token}`);
-            loginCredential = O.some(reply);
-        }).catch(error => {
-            console.error('Error:', error);
-            loginCredential = O.none;
-        });
-    }
-
-export async function GetTokens(): O.Option<Tokens> {
+export function GetTokens(): T.TaskEither<Error, Tokens> {
     let pass = loadPW();
+
     return pipe(
-        await getTastyToken(pass),
-        O.flatMap((tlr: TastyLoginReply) => {
-            return pipe(
-                getDxToken(tlr),
-                O.map((dlr: DxLoginReply) => {
-                    return {
-                        tastyToken: tlr,
-                        dxToken: dlr
-                    }
-                })
-            )
-        }),
+        getTastyToken(pass),
+        T.chain( tlr => pipe(
+            getDxToken(tlr),
+            T.map( (dlr: DxLoginReply) => {
+                let result: Tokens = { dxToken: dlr, tastyToken: tlr }
+                return result;
+            })
+        ))
     );
 }
