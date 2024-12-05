@@ -1,4 +1,3 @@
-import { TastyConfig } from './Tasty/TastyConfig'
 import { identity, pipe } from 'fp-ts/function'
 import { GetTokens } from './Tasty/GetTokens'
 import * as E from 'fp-ts/Either'

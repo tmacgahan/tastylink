@@ -3,6 +3,7 @@ import { pipe } from 'fp-ts/function';
 import { Tokens } from './ExternalModels/Tokens';
 import { DxLoginReply } from './ExternalModels/DxLoginReply';
 import { TastyLoginReply } from './ExternalModels/TastyLoginReply';
+import * as child from 'child_process';
 import fetch from 'node-fetch';
 
 function tastyURL(): string { return "https://api.cert.tastyworks.com/sessions"; }
@@ -40,8 +41,8 @@ function getDxToken(tastyToken: TastyLoginReply): T.TaskEither<Error, DxLoginRep
         console.log( `the session token is: ${tastyToken.data['session-token']}` );
         let apiUrl = tokenURL();
         let requestData = {
-            method: 'POST', // am I really a post ?
-            redirect: 'follow' as RequestRedirect, // necessary ?
+            method: 'GET',
+            redirect: 'follow' as RequestRedirect,
             headers: {
               'Content-type': 'application/json; charset=UTF-8',
               'Accept': 'application/json',
