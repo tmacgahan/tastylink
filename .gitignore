@@ -2,4 +2,6 @@ secrets
 node_modules
 package.json
 package-lock.json
+sample_data/
 *.js
+*.log

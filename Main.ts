@@ -4,6 +4,9 @@ import * as E from 'fp-ts/Either'
 import * as T from 'fp-ts/TaskEither'
 import { WebSocket } from 'ws';
 import { Tokens } from './Tasty/ExternalModels/Tokens';
+import fetch from 'node-fetch';
+
+const util = require('util');
 
 // https://stackoverflow.com/questions/33858763/console-input-in-typescript
 // Define the API URL
@@ -145,13 +148,37 @@ function StartSocket( tokens: Tokens ) {
     ws.onclose = (evt)   => { console.log( `closing with msg: '${evt.reason}'` ); }
 }
 
+function GetOptionChain( tokens: Tokens, symbol: string ): T.TaskEither<Error, unknown> {
+    let apiUrl = `https://api.cert.tastyworks.com/option-chains/${symbol}`;
+    let requestData = {
+        method: 'GET',
+        headers: {
+            'Content-type': 'application/json; charset=UTF-8',
+            'User-Agent': 'Dude-Bro',
+            'Authorization': `${tokens.tastyToken.data['session-token']}`,
+            //'Authorization': `${tokens.dxToken.data.token}`,
+        }
+    }
+    return T.tryCatch(
+        () => fetch(apiUrl, requestData).then(resp => resp.json().then(json => json)),
+        (reason) => new Error(String(reason)),
+    );
+}
+
 pipe(
     GetTokens(),
-    T.map( tokens => {
+    T.flatMap( tokens => {
         console.log( "found tokens:" );
         console.log( tokens );
-        StartSocket( tokens );
-    })
+        //StartSocket( tokens );
+        return GetOptionChain( tokens, "SPY" );
+    }),
+    T.map( str => {
+        console.log(`api came back with: ${util.inspect(str, { showHidden: true, depth: null })}`);
+        console.log("=======");
+        console.log(JSON.stringify(str));
+        console.log("=======");
+    }),
 )().then( result => pipe(
     result,
     E.match(
