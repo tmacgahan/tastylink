@@ -1,0 +1,34 @@
+import { Chain, Option } from './Chain.ts'
+
+export class BuyAndHoldCalls {
+    private startDate: string
+    private accountCash: number
+    private call: Option
+
+    constructor(startDate: string) {
+        this.startDate = startDate;
+        this.accountCash = 0;
+    }
+
+    // we should be able to repeatedly call this with expiration date data
+    public MaintainPosition(date: string, chain: Chain) {
+        if( date == this.startDate ) {
+            this.OpenPosition(chain)
+        }
+    }
+
+    public OpenPosition(chain: Chain) {
+        // we want a long call at a minimum of a certain number of days
+        // to buy it, we add it to our call private var, and then subtract its cost
+        // from accountCash
+    }
+
+    public ClosePosition(chain: Chain) {
+        // we just sell the call.  Look up the call in the chain, set our call to null
+        // then credit our cash with the price.
+    }
+
+    public AccountValue(chain: Chain) {
+        // lookup option, get a price, sum the price with our account value
+    }
+}

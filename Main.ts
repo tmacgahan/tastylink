@@ -3,12 +3,10 @@ import { LoadAPIToken } from './MarketData/GetTokens'
 import * as E from 'fp-ts/Either'
 import * as T from 'fp-ts/TaskEither'
 import { MarketDataFunctions } from './MarketData/MarketDataFunctions'
-import { Timestamp, TomorrowOf, TimestampToDate, TimestampsToDte } from './Utils/DateFunctions'
-import { CacheKey } from './Utils/CacheKey'
+import { Timestamp, TimestampToDate, TimestampsToDte } from './Utils/DateFunctions'
 import { decode, OptionCode } from './Utils/OptionCode'
 import { ChainReply } from './MarketData/ExternalModel'
-
-//const util = require('util');
+import { Option, Chain, Strike, Expiration, Side } from './Strategies/Chain'
 
 // https://stackoverflow.com/questions/33858763/console-input-in-typescript
 // Define the API URL
@@ -21,7 +19,7 @@ interface ChainEntry {
     ask: number,
 }
 
-if( true ) {
+if( false ) {
     pipe(
         md.GetExpirationDates("SPY", "2024-12-11"),
         T.flatMap( reply =>
@@ -49,10 +47,30 @@ if( true ) {
         )
     ));
 } else {
-    let chainDate = "2024-12-11"
-    let forExpiration = "2024-12-12"
-    console.log(TimestampToDate(chainDate));
-    console.log(TimestampToDate(forExpiration));
-    console.log(TimestampsToDte(chainDate, forExpiration));
-    console.log(JSON.stringify(decode("SPY241220C00120000")));
+    let put: Option = {
+        bid: 1.13,
+        ask: 1.15,
+        side: Side.Put,
+        symbol: "SPY241220P00120000",
+    }
+
+    let call: Option = {
+        bid: 1.13,
+        ask: 1.15,
+        side: Side.Call,
+        symbol: "SPY241220C00120000",
+    }
+
+    let strike: Strike = {
+        price: 120,
+        call: call,
+        put: put,
+    }
+
+    let expiration = new Expiration(TimestampToDate("2024-12-20"));
+    expiration.pushStrike(strike);
+    let chain = new Chain(TimestampToDate("2024-12-11"), "SPY", 500);
+    chain.pushExpiration(expiration);
+
+    console.log(JSON.stringify(chain));
 }

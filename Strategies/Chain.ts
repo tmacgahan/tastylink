@@ -13,7 +13,7 @@ export interface Option {
 }
 
 export interface Strike {
-    price: number;
+    price: number;  // strike price, market prices will always be bid / ask
     call: Option;
     put: Option;
 }
