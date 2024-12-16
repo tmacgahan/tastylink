@@ -14,38 +14,51 @@ export interface Option {
 
 export interface Strike {
     price: number;  // strike price, market prices will always be bid / ask
-    call: Option;
-    put: Option;
+    call: Option | null;
+    put: Option | null;
 }
 
 export class Expiration {
-    private date: Date;     // the date of expiration in question
-    private strikes: Strike[];
+    public readonly date: Date;     // the date of expiration in question
+    public readonly strikes: Number[];
+    public readonly map: Map<Number, Strike>;
 
-    constructor( setDate: Date ) {
-        this.date = setDate;
-        this.strikes = new Array();
-    }
-
-    public pushStrike( strike: Strike ) {
-        this.strikes.push( strike );
+    constructor( date: Date, strikes: Array<Strike> ) {
+        this.date = date;
+        strikes.sort( (strike1, strike2) => strike1.price - strike2.price );
+        let map: Map<Number, Strike> = new Map<Number, Strike>();
+        this.strikes = new Array<Number>();
+        strikes.forEach( (strike) => {
+            map.set(strike.price, strike)
+            this.strikes.push(strike.price);
+        });
+        this.map = map;
     }
 }
 
 export class Chain {
-    private date: Date;             // the date for which the chain was pulled
-    private underlying: string;
-    private price: number;          // the price of the underlying
-    private expirations: Expiration[];
+    public readonly date: Date;             // the date for which the chain was pulled
+    public readonly underlying: string;
+    public readonly price: number;          // the price of the underlying
+    public readonly expirations: Expiration[];
 
-    constructor( setDate: Date, setUnderlying: string, setPrice: number ) {
-        this.date = setDate;
-        this.underlying = setUnderlying;
-        this.price = setPrice;
-        this.expirations = new Array();
+    constructor( date: Date, underlying: string, price: number, expirations: Expiration[] ) {
+        this.date = date;
+        this.underlying = underlying;
+        this.price = price;
+        this.expirations = expirations
     }
+}
 
-    public pushExpiration( expiration: Expiration ) {
-        this.expirations.push( expiration ); // we should sort this
+///// helpers /////
+export function SideFromSymbol(symbol: string) {
+    if(`${symbol.slice(symbol.length - 9, symbol.length - 8)}`.toUpperCase() == "P") {
+        return Side.Put
+    } else {
+        return Side.Call
     }
+}
+
+export function StrikePriceFromSymbol(symbol: string) {
+    return parseInt(symbol.slice(symbol.length - 8, symbol.length)) / 1000
 }

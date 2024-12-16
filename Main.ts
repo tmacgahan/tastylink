@@ -6,44 +6,93 @@ import { MarketDataFunctions } from './MarketData/MarketDataFunctions'
 import { Timestamp, TimestampToDate, TimestampsToDte } from './Utils/DateFunctions'
 import { decode, OptionCode } from './Utils/OptionCode'
 import { ChainReply } from './MarketData/ExternalModel'
-import { Option, Chain, Strike, Expiration, Side } from './Strategies/Chain'
+import { Option, Chain, Strike, Expiration, Side, SideFromSymbol, StrikePriceFromSymbol } from './Strategies/Chain'
 
 // https://stackoverflow.com/questions/33858763/console-input-in-typescript
 // Define the API URL
 
 let md = new MarketDataFunctions(LoadAPIToken());
 
-interface ChainEntry {
-    code: OptionCode,
-    bid: number,
-    ask: number,
-}
+// dedicated timestamp object
+function replacer(key: any, value: any) {
+    if(value instanceof Map) {
+      return {
+        dataType: 'Map',
+        value: Array.from(value.entries()),
+      };
+    } else {
+      return value;
+    }
+  }
 
 if( false ) {
     pipe(
         md.GetExpirationDates("SPY", "2024-12-11"),
         T.flatMap( reply =>
-            T.sequenceArray(reply.expirations.map( exp => md.GetChain("SPY", "2024-12-11", exp)))
+            T.sequenceArray(reply.expirations.map( exp => pipe(
+                md.GetChain("SPY", "2024-12-11", exp),
+                T.map( result => { 
+                    return {
+                        reply: result,
+                        exp: exp,
+                    }
+                })
+            )))
         ),
-        T.map( replies => replies.forEach( (chainReply: ChainReply, idx: number) => {
-            console.log( `total symbols: ${chainReply.optionSymbol.length}` );
-            let entries: ChainEntry[] = new Array();
+        T.map( replies => {
+            let expirations: Array<Expiration> = new Array();
+            replies.forEach( (item , idx: number) => {
+                let exp = item.exp
+                let chainReply = item.reply
+                console.log( `total symbols: ${chainReply.optionSymbol.length}` );
+                let entries: Map<Number, Strike> = new Map<Number, Strike>();
 
-            for( var ii = 0; ii < chainReply.optionSymbol.length; ii++ ) {
-                entries.push({
-                    code: decode(chainReply.optionSymbol[ii]),
-                    bid: chainReply.bid[ii],
-                    ask: chainReply.ask[ii],
+                for( var ii = 0; ii < chainReply.optionSymbol.length; ii++ ) {
+                    let symbol = chainReply.optionSymbol[ii]
+                    let price = StrikePriceFromSymbol(symbol);
+                    let opt: Option = {
+                        symbol: symbol,
+                        bid: chainReply.bid[ii],
+                        ask: chainReply.ask[ii],
+                        side: SideFromSymbol(symbol),
+                    }
+
+                    if( entries.has(price) ) {
+                        let strike = entries.get(price) as Strike
+                        if( opt.side == Side.Call ) {
+                            strike.call = opt
+                        } else {
+                            strike.put = opt
+                        }
+
+                        entries.set(price, strike)
+                    } else {
+                        let strike: Strike = { price: price, put: null, call: null }
+                        if( opt.side == Side.Put ) {
+                            strike.put = opt
+                        } else {
+                            strike.call = opt
+                        }
+
+                        entries.set(price, strike)
+                    }
+                }
+
+                let strikes: Array<Strike> = new Array()
+                Array.from(entries).forEach( (entry) => {
+                    strikes.push(entry[1]);
                 });
-            }
 
-            return entries;
-        })),
+                expirations.push(new Expiration(TimestampToDate(exp), strikes));
+            })
+
+            return new Chain(TimestampToDate("2024-12-11"), "SPY", 600, expirations);
+        }),
     )().then(result => pipe( 
         result,
         E.match(
             err => { throw(err) },
-            msg => { console.log(`done`) },
+            msg => { console.log(`${JSON.stringify(result, replacer)}\ndone`) },
         )
     ));
 } else {
@@ -67,10 +116,8 @@ if( false ) {
         put: put,
     }
 
-    let expiration = new Expiration(TimestampToDate("2024-12-20"));
-    expiration.pushStrike(strike);
-    let chain = new Chain(TimestampToDate("2024-12-11"), "SPY", 500);
-    chain.pushExpiration(expiration);
+    let expiration = new Expiration(TimestampToDate("2024-12-20"), [strike]);
+    let chain = new Chain(TimestampToDate("2024-12-11"), "SPY", 500, [expiration]);
 
-    console.log(JSON.stringify(chain));
+    console.log(JSON.stringify(chain, replacer));
 }
