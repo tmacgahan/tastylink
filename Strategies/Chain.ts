@@ -1,4 +1,5 @@
 import { set } from "fp-ts";
+import { TimestampToDate } from "../Utils/DateFunctions";
 
 export enum Side {
     Put = "PUT",
@@ -41,12 +42,18 @@ export class Chain {
     public readonly underlying: string;
     public readonly price: number;          // the price of the underlying
     public readonly expirations: Expiration[];
+    public readonly dateMap: Map<Date, Expiration>;
 
     constructor( date: Date, underlying: string, price: number, expirations: Expiration[] ) {
+        expirations.sort( (date1, date2) => date1.date.getTime() - date2.date.getTime() )
         this.date = date;
         this.underlying = underlying;
         this.price = price;
         this.expirations = expirations
+
+        let dateMap: Map<Date, Expiration> = new Map<Date, Expiration>();
+        expirations.forEach( exp => dateMap.set(exp.date, exp));
+        this.dateMap = dateMap;
     }
 }
 
@@ -61,4 +68,20 @@ export function SideFromSymbol(symbol: string) {
 
 export function StrikePriceFromSymbol(symbol: string) {
     return parseInt(symbol.slice(symbol.length - 8, symbol.length)) / 1000
+}
+
+export function ExpirationDateFromSymbol(symbol: string): Date {
+    return TimestampToDate(TimestampFromSymbol(symbol))
+}
+
+export function TimestampFromSymbol(symbol: string) {
+    let day = symbol.slice(symbol.length - 11, symbol.length - 9);
+    let month = symbol.slice(symbol.length - 13, symbol.length - 11);
+    let year = `20${symbol.slice(symbol.length - 15, symbol.length - 13)}`;
+
+    return `${year}-${month}-${day}`;
+}
+
+export function AveragePrice(option: Option): number {
+    return (option.bid + option.ask) / 2
 }
