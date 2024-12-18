@@ -51,8 +51,13 @@ function GatherStrikes(chainReply: ChainReply, expirationTimestamp: string): Arr
     return strikes;
 }
 
+function CHANGEMEGetUnderlyingPrice(): number {
+    return 600;
+}
+
 export function DownloadData(symbol: string, timestamp: string) {
     let md = new MarketDataFunctions(LoadAPIToken());
+    let underlyingPrice = CHANGEMEGetUnderlyingPrice();
     pipe(
         md.GetExpirationDates(symbol, timestamp),
         T.flatMap( reply =>
@@ -67,7 +72,7 @@ export function DownloadData(symbol: string, timestamp: string) {
                 expirations.push(new Expiration(TimestampToDate(item.exp), GatherStrikes(item.reply, item.exp)));
             })
 
-            return new Chain(TimestampToDate(timestamp), symbol, 600, expirations); // we need to actually download the price as well.
+            return new Chain(TimestampToDate(timestamp), symbol, underlyingPrice, expirations); // we need to actually download the price as well.
         }),
     )().then(result => pipe( 
         result,
