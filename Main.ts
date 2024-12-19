@@ -4,6 +4,7 @@ import { Resolution } from './MarketData/ExternalModel'
 import { Replacer } from './Utils/PrettyPrint'
 import * as T from 'fp-ts/TaskEither'
 import { DownloadChain, DownloadUnderlyingPrice } from './MarketData/DownloadFunctions'
+import { MarketTimestampsBetween, NextMarketDay, Timestamp, TimestampToDate, TomorrowOf } from './Utils/DateFunctions'
 
 // https://stackoverflow.com/questions/33858763/console-input-in-typescript
 // Define the API URL
@@ -13,12 +14,6 @@ import { DownloadChain, DownloadUnderlyingPrice } from './MarketData/DownloadFun
 
 
 //let strategy = new BuyAndHoldCalls("2024-12-10")
-/*
-        T.sequenceArray(
-            ["2024-12-10", "2024-12-11"].map( date => T.of<Error, string>(date) )
-        ),
-        T.map( dates => dates.map( date => md.GetExpirationDates("SPY", date) ) ),
-*/
 
 /*
 our pipe is:
@@ -35,7 +30,11 @@ pipe(
 )
 */
 
+/*
 pipe(
     DownloadUnderlyingPrice("SPY", "2024-12-17"),
     T.map( price => console.log(`price: ${price}`) ),
 )()
+*/
+
+MarketTimestampsBetween( "2024-12-10", "2024-12-19" ).sort().forEach( date => DownloadChain("SPY", date))

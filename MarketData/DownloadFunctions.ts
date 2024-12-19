@@ -58,6 +58,7 @@ export function DownloadUnderlyingPrice(symbol: string, timestamp: string): T.Ta
 }
 
 export function DownloadChain(symbol: string, timestamp: string) {
+    console.log( `executing chain download for ${symbol} on ${timestamp}` );
     pipe(
         MarketDataRMI.instance.GetExpirationDates(symbol, timestamp),
         T.flatMap( reply =>
