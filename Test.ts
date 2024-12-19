@@ -2,7 +2,7 @@ import { Option, Strike, Expiration, Chain, Side } from './Strategies/Chain'
 import { TimestampToDate } from './Utils/DateFunctions'
 import { Replacer } from './Utils/PrettyPrint'
 
-export function Test {
+export function Test() {
     let put: Option = {
         bid: 1.13,
         ask: 1.15,

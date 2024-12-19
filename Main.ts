@@ -1,8 +1,9 @@
 import { pipe } from 'fp-ts/function'
-import { LoadAPIToken } from './MarketData/GetTokens'
-import { MarketDataFunctions } from './MarketData/MarketDataFunctions'
-import { Option, Chain, Strike, Expiration, Side, SideFromSymbol, StrikePriceFromSymbol } from './Strategies/Chain'
+import { MarketDataRMI } from './MarketData/MarketDataRMI'
+import { Resolution } from './MarketData/ExternalModel'
 import { Replacer } from './Utils/PrettyPrint'
+import * as T from 'fp-ts/TaskEither'
+import { DownloadChain, DownloadUnderlyingPrice } from './MarketData/DownloadFunctions'
 
 // https://stackoverflow.com/questions/33858763/console-input-in-typescript
 // Define the API URL
@@ -33,3 +34,8 @@ pipe(
   )
 )
 */
+
+pipe(
+    DownloadUnderlyingPrice("SPY", "2024-12-17"),
+    T.map( price => console.log(`price: ${price}`) ),
+)()

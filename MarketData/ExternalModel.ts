@@ -26,3 +26,45 @@ export interface ExpirationsReply {
     expirations: string[],
     updated: string,
 }
+
+export interface QuoteReply {
+    s: string,
+    symbol: string[]
+    ask: number[],
+    askSize: number[],
+    bid: number[],
+    bidSize: number[],
+    mid: number[],
+    last: number[],
+    volume: number[],
+    updated: number[],
+}
+
+export interface CandleReply {
+    s: string,
+    c: number[],    // close price
+    h: number[],    // high price
+    l: number[],    // low price
+    o: number[],    // open price
+    t: number[],    // candle time as timestamp, only applicable to intraday candles
+    v: number[],    // volume
+}
+
+export enum Resolution {
+    OneMinute = "1",
+    ThreeMinutes = "3",
+    FiveMinutes = "5",
+    FifteenMinutes = "15",
+    ThirtyMinutes = "30",
+    FortyFiveMinutes = "45",
+    Hourly = "H",
+    BiHourly = "2H",
+    Daily = "D",
+    BiDaily = "2D",
+    Weekly = "W",
+    BiWeekly = "2W",
+    Monthly = "M",
+    BiMonthly = "2M",
+    Annually = "Y",
+    BiAnnually = "2Y",
+}

@@ -1,8 +1,7 @@
 import * as E from 'fp-ts/Either'
 import * as T from 'fp-ts/TaskEither'
 import { pipe } from 'fp-ts/function'
-import { MarketDataFunctions } from './MarketDataFunctions';
-import { LoadAPIToken } from './GetTokens';
+import { MarketDataRMI } from './MarketDataRMI';
 import { Side, Option, Strike, Expiration, Chain, SideFromSymbol, StrikePriceFromSymbol } from '../Strategies/Chain';
 import { TimestampToDate } from '../Utils/DateFunctions';
 import { Replacer } from '../Utils/PrettyPrint'
@@ -51,29 +50,34 @@ function GatherStrikes(chainReply: ChainReply, expirationTimestamp: string): Arr
     return strikes;
 }
 
-function CHANGEMEGetUnderlyingPrice(): number {
-    return 600;
+export function DownloadUnderlyingPrice(symbol: string, timestamp: string): T.TaskEither<Error, number> {
+    return pipe(
+        MarketDataRMI.instance.GetCandleForDay(symbol, timestamp),
+        T.map( candleReply => { console.log(`${candleReply}`) ; return candleReply } ),
+        T.map( candleReply => (candleReply.o[0] + candleReply.c[0]) / 2 ) // taking the average over open / close
+    )
 }
 
-export function DownloadData(symbol: string, timestamp: string) {
-    let md = new MarketDataFunctions(LoadAPIToken());
-    let underlyingPrice = CHANGEMEGetUnderlyingPrice();
+export function DownloadChain(symbol: string, timestamp: string) {
     pipe(
-        md.GetExpirationDates(symbol, timestamp),
+        MarketDataRMI.instance.GetExpirationDates(symbol, timestamp),
         T.flatMap( reply =>
             T.sequenceArray(reply.expirations.map( exp => pipe(
-                md.GetChain(symbol, timestamp, exp),
+                MarketDataRMI.instance.GetChain(symbol, timestamp, exp),
                 T.map( result => { return { reply: result, exp: exp, } })
             )))
         ),
-        T.map( replies => {
-            let expirations: Array<Expiration> = new Array();
-            replies.forEach( (item , idx: number) => {
-                expirations.push(new Expiration(TimestampToDate(item.exp), GatherStrikes(item.reply, item.exp)));
-            })
+        T.chain( replies => pipe(
+            DownloadUnderlyingPrice(symbol, timestamp),
+            T.map( price => {
+                let expirations: Array<Expiration> = new Array();
+                replies.forEach( (item , idx: number) => {
+                    expirations.push(new Expiration(TimestampToDate(item.exp), GatherStrikes(item.reply, item.exp)));
+                })
 
-            return new Chain(TimestampToDate(timestamp), symbol, underlyingPrice, expirations); // we need to actually download the price as well.
-        }),
+                return new Chain(TimestampToDate(timestamp), symbol, price, expirations);
+            }),
+        )),
     )().then(result => pipe( 
         result,
         E.match(

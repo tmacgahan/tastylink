@@ -1,14 +1,26 @@
+import * as fs from 'fs';
 import * as T from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/function';
 import { CacheKey } from '../Utils/CacheKey';
-import { ChainReply, ExpirationsReply } from './ExternalModel';
+import { ChainReply, ExpirationsReply, CandleReply, Resolution } from './ExternalModel';
 import { TimestampsToDte } from '../Utils/DateFunctions';
 
 
-export class MarketDataFunctions {
+function LoadAPIToken(): string {
+    return String(fs.readFileSync('secrets/marketdata.token'));
+}
+
+/**
+ * Singleton for accessing remote methods on the MarketData API.  Located at https://api.marketdata.app
+ * You need to have a token to talk to them, and you should put that token in the place referenced
+ * in LoadAPIToken
+ */
+export class MarketDataRMI {
     private readonly apiToken: string;
-    public constructor(setToken: string) {
-        this.apiToken = setToken;
+    public static readonly instance: MarketDataRMI = new MarketDataRMI();
+
+    private constructor() {
+        this.apiToken = LoadAPIToken();
     }
 
     private requestData(verb: string) {
@@ -43,9 +55,15 @@ export class MarketDataFunctions {
                 date: timestamp,
             })}`,
             this.requestData('GET'),
-        ) as T.TaskEither<Error, ExpirationsReply>;
+        )
     }
 
+    /**
+     * This function is not done because it lacks an appropriate external model entry
+     * @param symbol 
+     * @param timestamp 
+     * @returns 
+     */
     public GetStrikes( symbol: string, timestamp: string ): T.TaskEither<Error, unknown> {
         return this.memoized(
             new CacheKey("strikes", symbol, timestamp),
@@ -53,7 +71,7 @@ export class MarketDataFunctions {
                 date: timestamp,
             })}`,
             this.requestData('GET'),
-        );
+        )
     }
 
     /**
@@ -76,6 +94,23 @@ export class MarketDataFunctions {
                 columns: "optionSymbol,bid,ask"
             })}`,
             this.requestData('GET'),
-        ) as T.TaskEither<Error, ChainReply>;
+        )
+    }
+
+    /**
+     * Download a candle for the specified day.  We will get just the open and close, and compute the average value
+     * @param symbol
+     * @param queryDate
+     */
+    public GetCandleForDay( symbol: string, queryDate: string ): T.TaskEither<Error, CandleReply> {
+        let resolution = Resolution.Daily
+        return this.memoized<CandleReply>(
+            new CacheKey("candle", symbol, queryDate, queryDate),
+            `https://api.marketdata.app/v1/stocks/candles/${resolution}/${symbol}?${new URLSearchParams({
+                from: queryDate,
+                to: queryDate,
+            })}`,
+            this.requestData('GET')
+        )
     }
 }
