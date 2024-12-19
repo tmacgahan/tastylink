@@ -53,7 +53,6 @@ function GatherStrikes(chainReply: ChainReply, expirationTimestamp: string): Arr
 export function DownloadUnderlyingPrice(symbol: string, timestamp: string): T.TaskEither<Error, number> {
     return pipe(
         MarketDataRMI.instance.GetCandleForDay(symbol, timestamp),
-        T.map( candleReply => { console.log(`${candleReply}`) ; return candleReply } ),
         T.map( candleReply => (candleReply.o[0] + candleReply.c[0]) / 2 ) // taking the average over open / close
     )
 }

@@ -6,36 +6,28 @@ import { ChainReply, ExpirationsReply, CandleReply, Resolution } from './Externa
 import { TimestampsToDte } from '../Utils/DateFunctions';
 
 
-function LoadAPIToken(): string {
-    return String(fs.readFileSync('secrets/marketdata.token'));
-}
 
 /**
  * Singleton for accessing remote methods on the MarketData API.  Located at https://api.marketdata.app
  * You need to have a token to talk to them, and you should put that token in the place referenced
- * in LoadAPIToken
+ * in the constructor
  */
 export class MarketDataRMI {
-    private readonly apiToken: string;
+    private readonly requestData: Object;
     public static readonly instance: MarketDataRMI = new MarketDataRMI();
 
     private constructor() {
-        this.apiToken = LoadAPIToken();
-    }
-
-    private requestData(verb: string) {
-        return {
-            method: verb,
-            headers: {
-                Authorization: `Bearer ${this.apiToken}`,
-            }
+        this.requestData = {
+            method: 'GET',
+            Authorization: `Bearer ${String(fs.readFileSync('secrets/marketdata.token'))}`,
         }
     }
 
+
     // Memoize this call to disk.  If it is already on disk, use that instead.
-    private memoized<T>( cache: CacheKey, apiUrl: string, requestData: Object ): T.TaskEither<Error, T> {
+    private memoized<T>( cache: CacheKey, apiUrl: string ): T.TaskEither<Error, T> {
         return cache.exists() ? T.of(cache.load<T>()) : pipe( T.tryCatch(
-                () => fetch(apiUrl, requestData).then(resp => resp.json().then(json => json)),
+                () => fetch(apiUrl, this.requestData).then(resp => resp.json().then(json => json)),
                 (reason) => new Error(String(reason)),
             ),
             T.map( result => { cache.write(JSON.stringify(result)); return result } ),
@@ -54,7 +46,6 @@ export class MarketDataRMI {
             `https://api.marketdata.app/v1/options/expirations/${symbol}?${new URLSearchParams({
                 date: timestamp,
             })}`,
-            this.requestData('GET'),
         )
     }
 
@@ -70,7 +61,6 @@ export class MarketDataRMI {
             `https://api.marketdata.app/v1/options/strikes/${symbol}?${new URLSearchParams({
                 date: timestamp,
             })}`,
-            this.requestData('GET'),
         )
     }
 
@@ -93,7 +83,6 @@ export class MarketDataRMI {
                 dte: String(TimestampsToDte(queryDate, expirationDate)),
                 columns: "optionSymbol,bid,ask"
             })}`,
-            this.requestData('GET'),
         )
     }
 
@@ -110,7 +99,6 @@ export class MarketDataRMI {
                 from: queryDate,
                 to: queryDate,
             })}`,
-            this.requestData('GET')
         )
     }
 }
