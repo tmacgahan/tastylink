@@ -50,6 +50,10 @@ export interface CandleReply {
     v: number[],    // volume
 }
 
+export interface GeneralReply {
+    s: string,
+}
+
 export enum Resolution {
     OneMinute = "1",
     ThreeMinutes = "3",

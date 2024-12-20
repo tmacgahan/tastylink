@@ -16,7 +16,8 @@ function GenerateOption(symbol: string, bid: number, ask: number): Option {
     }
 }
 
-function GatherStrikes(chainReply: ChainReply, expirationTimestamp: string): Array<Strike> {
+function GatherStrikes(chainReply: ChainReply): Array<Strike> {
+    console.log( `reply: ${JSON.stringify(chainReply)}` );
     console.log( `total symbols: ${chainReply.optionSymbol.length}` );
     let entries: Map<Number, Strike> = new Map<Number, Strike>();
 
@@ -61,18 +62,19 @@ export function DownloadChain(symbol: string, timestamp: string) {
     console.log( `executing chain download for ${symbol} on ${timestamp}` );
     pipe(
         MarketDataRMI.instance.GetExpirationDates(symbol, timestamp),
-        T.flatMap( reply =>
-            T.sequenceArray(reply.expirations.map( exp => pipe(
+        T.flatMap( reply => {
+            //console.log( `reply: ${JSON.stringify(reply)}` );
+            return T.sequenceArray(reply.expirations.map( exp => pipe(
                 MarketDataRMI.instance.GetChain(symbol, timestamp, exp),
                 T.map( result => { return { reply: result, exp: exp, } })
             )))
-        ),
+        }),
         T.chain( replies => pipe(
             DownloadUnderlyingPrice(symbol, timestamp),
             T.map( price => {
                 let expirations: Array<Expiration> = new Array();
                 replies.forEach( (item , idx: number) => {
-                    expirations.push(new Expiration(TimestampToDate(item.exp), GatherStrikes(item.reply, item.exp)));
+                    expirations.push(new Expiration(TimestampToDate(item.exp), GatherStrikes(item.reply)));
                 })
 
                 return new Chain(TimestampToDate(timestamp), symbol, price, expirations);
@@ -81,7 +83,7 @@ export function DownloadChain(symbol: string, timestamp: string) {
     )().then(result => pipe( 
         result,
         E.match(
-            err => { throw(err) },
+            err => { console.log(`An error occurred while processing ${symbol} for ${timestamp}`); throw(err) },
             msg => { console.log(`${JSON.stringify(result, Replacer)}\ndone`) },
         )
     ));

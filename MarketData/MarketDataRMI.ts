@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as T from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/function';
 import { CacheKey } from '../Utils/CacheKey';
-import { ChainReply, ExpirationsReply, CandleReply, Resolution } from './ExternalModel';
+import { ChainReply, ExpirationsReply, CandleReply, Resolution, GeneralReply } from './ExternalModel';
 import { TimestampsToDte } from '../Utils/DateFunctions';
 
 
@@ -13,24 +13,40 @@ import { TimestampsToDte } from '../Utils/DateFunctions';
  * in the constructor
  */
 export class MarketDataRMI {
-    private readonly requestData: Object;
+    private readonly apiToken: string;
     public static readonly instance: MarketDataRMI = new MarketDataRMI();
 
     private constructor() {
-        this.requestData = {
+        this.apiToken = String(fs.readFileSync('secrets/marketdata.token'))
+    }
+    
+    private requestData() {
+        return {
             method: 'GET',
-            Authorization: `Bearer ${String(fs.readFileSync('secrets/marketdata.token'))}`,
+            headers: {
+                Authorization: `Bearer ${this.apiToken}`,
+            },
         }
     }
 
 
     // Memoize this call to disk.  If it is already on disk, use that instead.
     private memoized<T>( cache: CacheKey, apiUrl: string ): T.TaskEither<Error, T> {
-        return cache.exists() ? T.of(cache.load<T>()) : pipe( T.tryCatch(
-                () => fetch(apiUrl, this.requestData).then(resp => resp.json().then(json => json)),
+        return cache.exists() ? T.of(cache.load<T>()) : pipe(
+            T.tryCatch(
+                () => { return fetch(apiUrl, this.requestData()).then(resp => resp.json().then(json => json))},
                 (reason) => new Error(String(reason)),
             ),
-            T.map( result => { cache.write(JSON.stringify(result)); return result } ),
+            T.map( result => {
+                let gen = result as GeneralReply
+                if( (gen == null) || (gen.s == null) || !(gen.s === "ok") ) {
+                    console.log( `failed to cache result: ${JSON.stringify(result)} to ${cache.path()}` );
+                    T.left(new Error(`got a failure back from server: ${JSON.stringify(gen)}`));
+                } else {
+                    cache.write(JSON.stringify(result));
+                    return result;
+                }
+            }),
         );
     }
 
@@ -81,7 +97,7 @@ export class MarketDataRMI {
                 date: queryDate,
                 expirations: "all",
                 dte: String(TimestampsToDte(queryDate, expirationDate)),
-                columns: "optionSymbol,bid,ask"
+                columns: "s,optionSymbol,bid,ask", // we need to ask sfor the s column, or we won't get the status column and won't be able to tell a failed result from a valid one
             })}`,
         )
     }
