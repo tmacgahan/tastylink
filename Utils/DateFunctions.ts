@@ -42,7 +42,20 @@ export function IsWeekend(date: Date): boolean {
     return !IsWeekday(date)
 }
 
+export function FindFirstDayOfTypeInMonth(date: Date, dayType: number): number {
+    let testDate: Date = new Date(date);
+
+    testDate.setDate(1);
+    while(testDate.getDay() != dayType) {
+        testDate = TomorrowOf(testDate)
+    }
+
+    return testDate.getDate();
+}
+
 // TODO: Finish checking public holidays
+// TODO: compute all the public holidays for the last 20 years, put them in a json somewhere,
+// load that into a set, and then just check the set for this shtuff
 /*
 missing public holidays:
     Martin Luther King Jr. Day: Third Monday in January
@@ -51,6 +64,12 @@ missing public holidays:
     Labor Day: First Monday in September
     Columbus Day: Second Monday in October
     Thanksgiving Day: Fourth Thursday in November
+
+    Thanksgiving:
+    it's november: date.getMonth() === 10
+    it's thursday: date.getDay() === 4
+    it's the third thursday:
+        date.getDate() === FindFirstThursdayInMonth(date) + 14
 */
 export function IsPublicHoliday(date: Date): boolean {
     if( date.getMonth() === 0 && date.getDate() === 1 ) { // new year's day

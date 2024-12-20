@@ -38,4 +38,5 @@ pipe(
 */
 
 //MarketTimestampsBetween( "2024-12-10", "2024-12-19" ).sort().forEach( date => DownloadChain("SPY", date))
-DownloadChain("SPY", "2024-12-18")
+console.log( MarketTimestampsBetween( "2024-12-112", "2024-12-20" ) )
+//DownloadChain("SPY", "2024-12-18")

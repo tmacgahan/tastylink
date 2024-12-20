@@ -63,7 +63,6 @@ export function DownloadChain(symbol: string, timestamp: string) {
     pipe(
         MarketDataRMI.instance.GetExpirationDates(symbol, timestamp),
         T.flatMap( reply => {
-            //console.log( `reply: ${JSON.stringify(reply)}` );
             return T.sequenceArray(reply.expirations.map( exp => pipe(
                 MarketDataRMI.instance.GetChain(symbol, timestamp, exp),
                 T.map( result => { return { reply: result, exp: exp, } })
