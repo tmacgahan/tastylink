@@ -1,7 +1,7 @@
 export function Timestamp(date: Date): string {
-    let year = date.getFullYear();
-    let month = date.getMonth() + 1;
-    let day = date.getDate();
+    let year = date.getUTCFullYear();
+    let month = date.getUTCMonth() + 1;
+    let day = date.getUTCDate();
 
     return `${year}-${(month<10) ? "0" : ""}${month}-${(day<10) ? "0":""}${day}`
 }
@@ -12,16 +12,22 @@ export function TomorrowOf(date: Date): Date {
     return result;
 }
 
-export function TimestampToDate(timestamp: string) {
+export function YesterdayOf(date: Date): Date {
     let result = new Date();
-    result.setFullYear(
+    result.setTime(date.getTime() - (24 * 60 * 60 * 1000));
+    return result;
+}
+
+export function TimestampToDate(timestamp: string) {
+    let result = new Date()
+    result.setUTCFullYear(
         parseInt(timestamp.slice(0,4)),
         parseInt(timestamp.slice(5,7)) - 1,
         parseInt(timestamp.slice(8,10))
     );
-    result.setHours(12);
-    result.setMinutes(0);
-    result.setMilliseconds(0);
+    result.setUTCHours(12);
+    result.setUTCMinutes(0);
+    result.setUTCMilliseconds(0);
 
     return result;
 }
@@ -34,7 +40,7 @@ export function TimestampsToDte(queryDate: string, expirationDate: string) {
 }
 
 export function IsWeekday(date: Date): boolean {
-    let dayOfWeek = date.getDay();
+    let dayOfWeek = date.getUTCDay();
     return !(dayOfWeek === 0) && !(dayOfWeek === 6);
 }
 
@@ -45,12 +51,22 @@ export function IsWeekend(date: Date): boolean {
 export function FindFirstDayOfTypeInMonth(date: Date, dayType: number): number {
     let testDate: Date = new Date(date);
 
-    testDate.setDate(1);
-    while(testDate.getDay() != dayType) {
+    testDate.setUTCDate(1);
+    while(testDate.getUTCDay() != dayType) {
         testDate = TomorrowOf(testDate)
     }
 
-    return testDate.getDate();
+    return testDate.getUTCDate();
+}
+
+export function FindLastDayOfTypeInMonth(date: Date, dayType: number): number {
+    let testDate: Date = new Date(date.getUTCFullYear(), date.getUTCMonth() + 1, 0);  // last day of the month
+
+    while(testDate.getUTCDay() != dayType) {
+        testDate = YesterdayOf(testDate)
+    }
+
+    return testDate.getUTCDate();
 }
 
 // TODO: Finish checking public holidays
@@ -61,29 +77,25 @@ missing public holidays:
     Martin Luther King Jr. Day: Third Monday in January
     Washington's Birthday: Third Monday in February
     Memorial Day: Last Monday in May
-
-    Thanksgiving:
-    it's november: date.getMonth() === 10
-    it's thursday: date.getDay() === 4
-    it's the third thursday:
-        date.getDate() === FindFirstThursdayInMonth(date) + 14
 */
 export function IsPublicHoliday(date: Date): boolean {
-    if( date.getMonth() === 0 && date.getDate() === 1 ) { // new year's day
+    if( date.getUTCMonth() === 0 && date.getUTCDate() === 1 ) { // new year's day
         return true;
-    } else if( date.getMonth() === 11 && date.getDate() === 25 ) { // christmas
+    } else if( date.getUTCMonth() === 11 && date.getUTCDate() === 25 ) { // christmas
         return true;
-    } else if( date.getMonth() === 6 && date.getDate() === 4 ) { // independence day
+    } else if( date.getUTCMonth() === 6 && date.getUTCDate() === 4 ) { // independence day
         return true;
-    } else if( date.getMonth() === 10 && date.getDate() === 11 ) { // veteran's day
+    } else if( date.getUTCMonth() === 10 && date.getUTCDate() === 11 ) { // veteran's day
         return true;
-    } else if( date.getMonth() === 5 && date.getDate() === 19 && date.getFullYear() >= 2021 ) { // juneteenth
+    } else if( date.getUTCMonth() === 5 && date.getUTCDate() === 19 && date.getFullYear() >= 2021 ) { // juneteenth
         return true;
-    } else if( date.getMonth() === 10 && date.getDate() === (FindFirstDayOfTypeInMonth(date, 4) + 21) ) { // thanksgiving
+    } else if( date.getUTCMonth() === 10 && date.getUTCDate() === (FindFirstDayOfTypeInMonth(date, 4) + 21) ) { // thanksgiving
         return true;
-    } else if( date.getMonth() === 9 && date.getDate() == (FindFirstDayOfTypeInMonth(date, 1) + 7) ) { // columbus day
+    } else if( date.getUTCMonth() === 9 && date.getUTCDate() === (FindFirstDayOfTypeInMonth(date, 1) + 7) ) { // columbus day
         return true;
-    } else if( date.getMonth() === 8 && date.getDate() == FindFirstDayOfTypeInMonth(date, 1) ) { // labor day
+    } else if( date.getUTCMonth() === 8 && date.getUTCDate() === FindFirstDayOfTypeInMonth(date, 1) ) { // labor day
+        return true;
+    } else if( date.getUTCMonth() == 4 && date.getUTCDate() === FindLastDayOfTypeInMonth(date, 1) ) { // memorial day
         return true;
     }
 
