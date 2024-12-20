@@ -1,10 +1,4 @@
-import { pipe } from 'fp-ts/function'
-import { MarketDataRMI } from './MarketData/MarketDataRMI'
-import { Resolution } from './MarketData/ExternalModel'
-import { Replacer } from './Utils/PrettyPrint'
-import * as T from 'fp-ts/TaskEither'
-import { DownloadChain, DownloadUnderlyingPrice } from './MarketData/DownloadFunctions'
-import { MarketTimestampsBetween, NextMarketDay, Timestamp, TimestampToDate, TomorrowOf } from './Utils/DateFunctions'
+import { MarketTimestampsBetween } from './Utils/DateFunctions'
 
 // https://stackoverflow.com/questions/33858763/console-input-in-typescript
 // Define the API URL
