@@ -41,7 +41,7 @@ export class MarketDataRMI {
             T.map( result => {
                 let gen = result as GeneralReply
                 if( (gen == null) || (gen.s == null) || !(gen.s === "ok") ) {
-                    console.log( `failed to cache result with items outstanding: ${JSON.stringify(result)} to ${cache.path()}` );
+                    console.log( `failed to cache result: ${JSON.stringify(result)} to ${cache.path()}` );
                     T.left(new Error(`got a failure back from server: ${JSON.stringify(gen)}`));
                 } else {
                     cache.write(JSON.stringify(result));

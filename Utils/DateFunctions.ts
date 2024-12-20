@@ -61,9 +61,6 @@ missing public holidays:
     Martin Luther King Jr. Day: Third Monday in January
     Washington's Birthday: Third Monday in February
     Memorial Day: Last Monday in May
-    Labor Day: First Monday in September
-    Columbus Day: Second Monday in October
-    Thanksgiving Day: Fourth Thursday in November
 
     Thanksgiving:
     it's november: date.getMonth() === 10
@@ -81,6 +78,12 @@ export function IsPublicHoliday(date: Date): boolean {
     } else if( date.getMonth() === 10 && date.getDate() === 11 ) { // veteran's day
         return true;
     } else if( date.getMonth() === 5 && date.getDate() === 19 && date.getFullYear() >= 2021 ) { // juneteenth
+        return true;
+    } else if( date.getMonth() === 10 && date.getDate() === (FindFirstDayOfTypeInMonth(date, 4) + 21) ) { // thanksgiving
+        return true;
+    } else if( date.getMonth() === 9 && date.getDate() == (FindFirstDayOfTypeInMonth(date, 1) + 7) ) { // columbus day
+        return true;
+    } else if( date.getMonth() === 8 && date.getDate() == FindFirstDayOfTypeInMonth(date, 1) ) { // labor day
         return true;
     }
 

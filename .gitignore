@@ -4,5 +4,6 @@ package.json
 package-lock.json
 sample_data
 cache
+chains
 *.js
 *.log
