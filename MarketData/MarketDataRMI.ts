@@ -4,7 +4,7 @@ import { pipe } from 'fp-ts/function';
 import { CacheKey } from '../Utils/CacheKey';
 import { ChainReply, ExpirationsReply, CandleReply, Resolution, GeneralReply } from './ExternalModel';
 import { TimestampsToDte } from '../Utils/DateFunctions';
-
+import  Semaphore = require( 'ts-semaphore' );
 
 
 /**
@@ -15,10 +15,12 @@ import { TimestampsToDte } from '../Utils/DateFunctions';
 export class MarketDataRMI {
     private readonly apiToken: string;
     public static readonly instance: MarketDataRMI = new MarketDataRMI();
+    private connections = new Semaphore(40);
 
     private constructor() {
         this.apiToken = String(fs.readFileSync('secrets/marketdata.token'))
     }
+
     
     private requestData() {
         return {
@@ -29,18 +31,17 @@ export class MarketDataRMI {
         }
     }
 
-
     // Memoize this call to disk.  If it is already on disk, use that instead.
     private memoized<T>( cache: CacheKey, apiUrl: string ): T.TaskEither<Error, T> {
         return cache.exists() ? T.of(cache.load<T>()) : pipe(
             T.tryCatch(
-                () => { return fetch(apiUrl, this.requestData()).then(resp => resp.json().then(json => json))},
+                () => this.connections.use( () => fetch(apiUrl, this.requestData()).then(resp => resp.json().then(json => json)) ),
                 (reason) => new Error(String(reason)),
             ),
             T.map( result => {
                 let gen = result as GeneralReply
                 if( (gen == null) || (gen.s == null) || !(gen.s === "ok") ) {
-                    console.log( `failed to cache result: ${JSON.stringify(result)} to ${cache.path()}` );
+                    console.log( `failed to cache result with items outstanding: ${JSON.stringify(result)} to ${cache.path()}` );
                     T.left(new Error(`got a failure back from server: ${JSON.stringify(gen)}`));
                 } else {
                     cache.write(JSON.stringify(result));

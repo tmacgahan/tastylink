@@ -17,7 +17,6 @@ function GenerateOption(symbol: string, bid: number, ask: number): Option {
 }
 
 function GatherStrikes(chainReply: ChainReply): Array<Strike> {
-    console.log( `reply: ${JSON.stringify(chainReply)}` );
     console.log( `total symbols: ${chainReply.optionSymbol.length}` );
     let entries: Map<Number, Strike> = new Map<Number, Strike>();
 
@@ -63,10 +62,12 @@ export function DownloadChain(symbol: string, timestamp: string) {
     pipe(
         MarketDataRMI.instance.GetExpirationDates(symbol, timestamp),
         T.flatMap( reply => {
-            return T.sequenceArray(reply.expirations.map( exp => pipe(
-                MarketDataRMI.instance.GetChain(symbol, timestamp, exp),
-                T.map( result => { return { reply: result, exp: exp, } })
-            )))
+            return T.sequenceArray(reply.expirations.map( exp => {
+                return pipe(
+                    MarketDataRMI.instance.GetChain(symbol, timestamp, exp),
+                    T.map( result => { return { reply: result, exp: exp, } })
+                );
+            }))
         }),
         T.chain( replies => pipe(
             DownloadUnderlyingPrice(symbol, timestamp),
