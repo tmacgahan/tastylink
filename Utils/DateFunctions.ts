@@ -69,15 +69,8 @@ export function FindLastDayOfTypeInMonth(date: Date, dayType: number): number {
     return testDate.getUTCDate();
 }
 
-// TODO: Finish checking public holidays
 // TODO: compute all the public holidays for the last 20 years, put them in a json somewhere,
 // load that into a set, and then just check the set for this shtuff
-/*
-missing public holidays:
-    Martin Luther King Jr. Day: Third Monday in January
-    Washington's Birthday: Third Monday in February
-    Memorial Day: Last Monday in May
-*/
 export function IsPublicHoliday(date: Date): boolean {
     if( date.getUTCMonth() === 0 && date.getUTCDate() === 1 ) { // new year's day
         return true;
@@ -95,7 +88,11 @@ export function IsPublicHoliday(date: Date): boolean {
         return true;
     } else if( date.getUTCMonth() === 8 && date.getUTCDate() === FindFirstDayOfTypeInMonth(date, 1) ) { // labor day
         return true;
-    } else if( date.getUTCMonth() == 4 && date.getUTCDate() === FindLastDayOfTypeInMonth(date, 1) ) { // memorial day
+    } else if( date.getUTCMonth() === 4 && date.getUTCDate() === FindLastDayOfTypeInMonth(date, 1) ) { // memorial day
+        return true;
+    } else if( date.getUTCMonth() === 0 && date.getUTCDate() === (FindFirstDayOfTypeInMonth(date, 1) + 14) ) { // MLK day
+        return true;
+    } else if( date.getUTCMonth() === 1 && date.getUTCDate() === (FindFirstDayOfTypeInMonth(date, 1) + 14) ) { // president's day
         return true;
     }
 
