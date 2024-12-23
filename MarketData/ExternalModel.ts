@@ -50,7 +50,7 @@ export interface CandleReply {
     v: number[],    // volume
 }
 
-export interface GeneralReply {
+export interface GeneralReply { // we should do inheritence if ts supports it
     s: string,
 }
 

@@ -1,5 +1,7 @@
 import { set } from "fp-ts";
-import { TimestampToDate } from "../Utils/DateFunctions";
+import { Timestamp, TimestampToDate } from "../Utils/DateFunctions";
+import * as fs from 'fs';
+import { Replacer } from "../Utils/PrettyPrint";
 
 export enum Side {
     Put = "PUT",
@@ -55,6 +57,17 @@ export class Chain {
         expirations.forEach( exp => dateMap.set(exp.date, exp));
         this.dateMap = dateMap;
     }
+
+    public Save() {
+        const name: string = `chains/chain.${this.underlying}.${Timestamp(this.date)}.json`
+        fs.writeFileSync(name, JSON.stringify(this, Replacer))
+    }
+}
+
+export function LoadChain(underlying: string, timestamp: string): Chain {
+    const name: string = `chains/chain.${underlying}.${timestamp}.json`
+    const result: Chain = JSON.parse(String(fs.readFileSync(name))) as Chain
+    return result
 }
 
 ///// helpers /////

@@ -17,12 +17,12 @@ function GenerateOption(symbol: string, bid: number, ask: number): Option {
 }
 
 function GatherStrikes(chainReply: ChainReply): Array<Strike> {
-    console.log( `total symbols: ${chainReply.optionSymbol.length}` );
-    let entries: Map<Number, Strike> = new Map<Number, Strike>();
+    console.log( `total symbols: ${chainReply.optionSymbol.length}` )
+    let entries: Map<Number, Strike> = new Map<Number, Strike>()
 
     for( var ii = 0; ii < chainReply.optionSymbol.length; ii++ )  {
         let price = StrikePriceFromSymbol(chainReply.optionSymbol[ii])
-        let opt = GenerateOption(chainReply.optionSymbol[ii], chainReply.bid[ii], chainReply.ask[ii]);
+        let opt = GenerateOption(chainReply.optionSymbol[ii], chainReply.bid[ii], chainReply.ask[ii])
         if( entries.has(price) ) {
             let strike = entries.get(price) as Strike
             if( opt.side == Side.Call ) {
@@ -45,7 +45,7 @@ function GatherStrikes(chainReply: ChainReply): Array<Strike> {
     }
 
     let strikes: Array<Strike> = new Array()
-    Array.from(entries).forEach( (entry) => { strikes.push(entry[1]); });
+    Array.from(entries).forEach( (entry) => { strikes.push(entry[1]) })
 
     return strikes;
 }
@@ -58,7 +58,7 @@ export function DownloadUnderlyingPrice(symbol: string, timestamp: string): T.Ta
 }
 
 export function DownloadChain(symbol: string, timestamp: string) {
-    console.log( `executing chain download for ${symbol} on ${timestamp}` );
+    console.log( `executing chain download for ${symbol} on ${timestamp}` )
     pipe(
         MarketDataRMI.instance.GetExpirationDates(symbol, timestamp),
         T.flatMap( reply => {
@@ -77,14 +77,16 @@ export function DownloadChain(symbol: string, timestamp: string) {
                     expirations.push(new Expiration(TimestampToDate(item.exp), GatherStrikes(item.reply)));
                 })
 
-                return new Chain(TimestampToDate(timestamp), symbol, price, expirations);
+                let chain = new Chain(TimestampToDate(timestamp), symbol, price, expirations)
+                chain.Save()
+                return chain
             }),
         )),
     )().then(result => pipe( 
         result,
         E.match(
             err => { console.log(`An error occurred while processing ${symbol} for ${timestamp}`); throw(err) },
-            msg => { console.log(`${JSON.stringify(result, Replacer)}\ndone`) },
+            msg => { console.log(`${JSON.stringify(msg, Replacer)}\ndone`) },
         )
     ));
 }
