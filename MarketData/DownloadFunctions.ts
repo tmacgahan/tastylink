@@ -74,10 +74,10 @@ export function DownloadChain(symbol: string, timestamp: string) {
             T.map( price => {
                 let expirations: Array<Expiration> = new Array();
                 replies.forEach( (item , idx: number) => {
-                    expirations.push(new Expiration(TimestampToDate(item.exp), GatherStrikes(item.reply)));
+                    expirations.push(new Expiration(item.exp, GatherStrikes(item.reply)));
                 })
 
-                let chain = new Chain(TimestampToDate(timestamp), symbol, price, expirations)
+                let chain = new Chain(timestamp, symbol, price, expirations)
                 chain.Save()
                 return chain
             }),

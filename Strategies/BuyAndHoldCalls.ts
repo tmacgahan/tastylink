@@ -1,4 +1,5 @@
-import { Chain, Expiration, Option, Strike, ExpirationDateFromSymbol, StrikePriceFromSymbol, AveragePrice } from './Chain.js'
+import { Chain, Expiration, Option, Strike, StrikePriceFromSymbol, AveragePrice, TimestampFromSymbol } from './Chain'
+import { FindAtTheMoneyStrike } from './StrategyHelpers'
 
 export class BuyAndHoldCalls {
     private startDate: string
@@ -6,8 +7,9 @@ export class BuyAndHoldCalls {
     private call: Option | null
 
     constructor(startDate: string) {
-        this.startDate = startDate;
-        this.accountCash = 0;
+        this.startDate = startDate
+        this.accountCash = 0
+        this.call = null
     }
 
     // we should be able to repeatedly call this with expiration date data
@@ -19,8 +21,8 @@ export class BuyAndHoldCalls {
 
     public OpenPosition(chain: Chain) {
         let expiration = chain.expirations[chain.expirations.length - 1]
-        let atmStrike = FindAtTheMoneyStrike(expiration, chain.price);
-        this.call = atmStrike.call as Option;
+        let atmStrike = FindAtTheMoneyStrike(expiration, chain.price)
+        this.call = atmStrike.call as Option
         this.accountCash -= AveragePrice(this.call)
     }
 
@@ -32,19 +34,12 @@ export class BuyAndHoldCalls {
     public AccountValue(chain: Chain): number {
         let call = this.call as Option
         let symbol = call.symbol
-        let exp = chain.dateMap.get(ExpirationDateFromSymbol(symbol)) as Expiration
+        let exp = chain.dateMap.get(TimestampFromSymbol(symbol)) as Expiration
         let strike = exp.map.get(StrikePriceFromSymbol(symbol)) as Strike
-        return AveragePrice(strike.call as Option) + this.accountCash;
-    }
-}
-
-export function FindAtTheMoneyStrike(expiration: Expiration, money: Number): Strike {
-    let found: boolean = false
-    for( let ii = 0; ii < expiration.strikes.length; ii++) {
-        if( money >= expiration.strikes[ii] ){
-            return expiration.map.get(expiration.strikes[ii]) as Strike;
-        }
+        return AveragePrice(strike.call as Option) + this.accountCash
     }
 
-    return expiration.map.get(expiration.strikes[expiration.strikes.length -1]) as Strike;
+    public Results(): string {
+        return `ending account cash: $${this.accountCash.toFixed(2)}`
+    }
 }

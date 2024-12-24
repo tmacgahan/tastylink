@@ -9,64 +9,67 @@ export enum Side {
 }
 
 export interface Option {
-    bid: number;
-    ask: number;
-    side: Side;
-    symbol: string;
+    bid: number
+    ask: number
+    side: Side
+    symbol: string
 }
 
 export interface Strike {
     price: number;  // strike price, market prices will always be bid / ask
-    call: Option | null;
-    put: Option | null;
+    call: Option | null
+    put: Option | null
 }
 
 export class Expiration {
-    public readonly date: Date;     // the date of expiration in question
-    public readonly strikes: Number[];
-    public readonly map: Map<Number, Strike>;
+    public readonly timestamp: string     // the date of expiration in question
+    public readonly strikes: number[]
+    public readonly strikeList: Strike[]
+    public readonly map: Map<number, Strike>
 
-    constructor( date: Date, strikes: Array<Strike> ) {
-        this.date = date;
-        strikes.sort( (strike1, strike2) => strike1.price - strike2.price );
-        let map: Map<Number, Strike> = new Map<Number, Strike>();
-        this.strikes = new Array<Number>();
+    constructor( timestamp: string, strikes: Strike[] ) {
+        this.timestamp = timestamp
+        this.strikeList = strikes.sort( (strike1, strike2) => strike1.price - strike2.price )
+        let map: Map<number, Strike> = new Map<number, Strike>()
+        this.strikes = new Array<number>()
         strikes.forEach( (strike) => {
             map.set(strike.price, strike)
-            this.strikes.push(strike.price);
+            this.strikes.push(strike.price)
         });
-        this.map = map;
+        this.map = map
     }
 }
 
 export class Chain {
-    public readonly date: Date;             // the date for which the chain was pulled
-    public readonly underlying: string;
-    public readonly price: number;          // the price of the underlying
-    public readonly expirations: Expiration[];
-    public readonly dateMap: Map<Date, Expiration>;
+    public readonly timestamp: string      // the date for which the chain was pulled
+    public readonly underlying: string
+    public readonly price: number          // the price of the underlying
+    public readonly expirations: Expiration[]
+    public readonly dateMap: Map<string, Expiration>
 
-    constructor( date: Date, underlying: string, price: number, expirations: Expiration[] ) {
-        expirations.sort( (date1, date2) => date1.date.getTime() - date2.date.getTime() )
-        this.date = date;
-        this.underlying = underlying;
-        this.price = price;
+    constructor( timestamp: string, underlying: string, price: number, expirations: Expiration[] ) {
+        expirations.sort( (exp1, exp2) => exp1.timestamp.localeCompare(exp2.timestamp) )
+        this.timestamp = timestamp
+        this.underlying = underlying
+        this.price = price
         this.expirations = expirations
 
-        let dateMap: Map<Date, Expiration> = new Map<Date, Expiration>();
-        expirations.forEach( exp => dateMap.set(exp.date, exp));
+        let dateMap: Map<string, Expiration> = new Map<string, Expiration>();
+        expirations.forEach( exp => dateMap.set(exp.timestamp, exp));
         this.dateMap = dateMap;
     }
 
     public Save() {
-        const name: string = `chains/chain.${this.underlying}.${Timestamp(this.date)}.json`
+        const name: string = `chains/chain.${this.underlying}.${this.timestamp}.json`
         fs.writeFileSync(name, JSON.stringify(this, Replacer))
     }
 }
 
 export function LoadChain(underlying: string, timestamp: string): Chain {
     const name: string = `chains/chain.${underlying}.${timestamp}.json`
-    const result: Chain = JSON.parse(String(fs.readFileSync(name))) as Chain
+    const loaded: Chain = JSON.parse(String(fs.readFileSync(name))) as Chain
+    const expirations: Expiration[] = loaded.expirations.map( expiration => new Expiration(expiration.timestamp, expiration.strikeList))
+    const result: Chain = new Chain( loaded.timestamp, loaded.underlying, loaded.price, expirations )
     return result
 }
 
@@ -88,9 +91,9 @@ export function ExpirationDateFromSymbol(symbol: string): Date {
 }
 
 export function TimestampFromSymbol(symbol: string) {
-    let day = symbol.slice(symbol.length - 11, symbol.length - 9);
-    let month = symbol.slice(symbol.length - 13, symbol.length - 11);
-    let year = `20${symbol.slice(symbol.length - 15, symbol.length - 13)}`;
+    let day = symbol.slice(symbol.length - 11, symbol.length - 9)
+    let month = symbol.slice(symbol.length - 13, symbol.length - 11)
+    let year = `20${symbol.slice(symbol.length - 15, symbol.length - 13)}`
 
     return `${year}-${month}-${day}`;
 }

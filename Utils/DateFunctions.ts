@@ -112,6 +112,15 @@ export function NextMarketDay(date: Date): Date {
     return next;
 }
 
+export function PreviousMarketDay(date: Date): Date {
+    let next = YesterdayOf(date)
+    while( !IsMarketDay(next) ) {
+        next = YesterdayOf(next)
+    }
+
+    return next;
+}
+
 export function MarketDaysBetween(from: Date, to: Date): Date[] {
     let result: Date[] = new Array<Date>();
     let curr = IsMarketDay(from) ? from : NextMarketDay(from)

@@ -7,3 +7,4 @@ cache
 chains
 *.js
 *.log
+.DS_Store
