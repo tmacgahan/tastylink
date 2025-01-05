@@ -78,9 +78,9 @@ export function IsPublicHoliday(date: Date): boolean {
         return true;
     } else if( date.getUTCMonth() === 6 && date.getUTCDate() === 4 ) { // independence day
         return true;
-    } else if( date.getUTCMonth() === 10 && date.getUTCDate() === 11 ) { // veteran's day
+    }/*else if( date.getUTCMonth() === 10 && date.getUTCDate() === 11 ) { // veteran's day (actually the market is open on veterans day)
         return true;
-    } else if( date.getUTCMonth() === 5 && date.getUTCDate() === 19 && date.getFullYear() >= 2021 ) { // juneteenth
+    }*/else if( date.getUTCMonth() === 5 && date.getUTCDate() === 19 && date.getFullYear() >= 2021 ) { // juneteenth
         return true;
     } else if( date.getUTCMonth() === 10 && date.getUTCDate() === (FindFirstDayOfTypeInMonth(date, 4) + 21) ) { // thanksgiving
         return true;

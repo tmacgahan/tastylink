@@ -8,6 +8,7 @@ import { FindFirstDayOfTypeInMonth, FindLastDayOfTypeInMonth, IsPublicHoliday, M
 import { Delay } from './Utils/Delay'
 import { Chain, LoadChain } from './Strategies/Chain'
 import { BuyAndHoldCalls } from './Strategies/BuyAndHoldCalls'
+import { RollATMStrangleDaily } from './Strategies/RollATMStrangleDaily'
 
 /*
 our pipe is:
@@ -24,20 +25,23 @@ pipe(
 )
 */
 
-/*
-MarketTimestampsBetween( "2024-11-08", "2024-12-19" ).sort().forEach( timestamp => {
-  DownloadChain("SPY", timestamp)
-  Delay(50)
-})
-*/
+function GenerateChains(fromDate: string, toDate: string, symbol: string) {
+  MarketTimestampsBetween(fromDate, toDate).sort().forEach( timestamp => {
+    DownloadChain(symbol, timestamp)
+    Delay(25)
+  })
+}
 
-const startDate: string = "2024-12-02"
+//GenerateChains( "2024-11-08", "2024-09-12", "SPY" )
+//DownloadChain("SPY", "2024-11-11")
+
+const startDate: string = "2024-10-25"
 const endDate: string = "2024-12-19"
 const dayBeforeLast: string = Timestamp(PreviousMarketDay(TimestampToDate(endDate)))
-let strategy = new BuyAndHoldCalls(startDate)
+let strategy = new RollATMStrangleDaily() //new BuyAndHoldCalls(startDate)
+MarketTimestampsBetween( startDate, dayBeforeLast ).forEach( stamp => console.log(stamp) )
 MarketTimestampsBetween( startDate, dayBeforeLast ).sort().forEach( timestamp => {
   strategy.MaintainPosition(timestamp, LoadChain("SPY", timestamp))
 })
 
-strategy.ClosePosition(LoadChain("SPY", endDate))
-console.log(strategy.Results())
+console.log(strategy.AccountValue(LoadChain("SPY", endDate)))
