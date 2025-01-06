@@ -9,3 +9,4 @@ chains
 *.log
 .DS_Store
 .vscode
+*.swp
