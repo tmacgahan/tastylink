@@ -101,3 +101,7 @@ export function TimestampFromSymbol(symbol: string) {
 export function AveragePrice(option: Option): number {
     return (option.bid + option.ask) / 2
 }
+
+export function OptionFromSymbol(symbol: string, bid: number, ask: number): Option {
+    return { symbol: symbol, side: SideFromSymbol(symbol), bid: bid, ask: ask, }
+}
