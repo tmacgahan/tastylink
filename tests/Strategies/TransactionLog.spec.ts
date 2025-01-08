@@ -33,7 +33,6 @@ describe('transaction', () => {
 	it('should account put sell correctly', () => {
         const txLog = new TransactionLog()
 
-        //put side
         txLog.SellToOpen(put, strike.price, timestamp, AveragePrice(put), 1n)
         expect(txLog.OpenPositionValue(chain)).to.equal(-AveragePrice(put))
         expect(txLog.OpenPositionValue(chain) < 0n).to.be.true
@@ -44,7 +43,6 @@ describe('transaction', () => {
     it('should account put buy correctly', () => {
         const txLog = new TransactionLog()
 
-        //put side
         txLog.BuyToOpen(put, strike.price, timestamp, AveragePrice(put), 1n)
         expect(txLog.OpenPositionValue(chain)).to.equal(AveragePrice(put))
         expect(txLog.OpenPositionValue(chain) > 0n).to.be.true
