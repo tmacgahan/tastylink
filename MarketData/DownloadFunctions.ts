@@ -7,7 +7,7 @@ import { TimestampToDate } from '../Utils/DateFunctions';
 import { Replacer } from '../Utils/PrettyPrint'
 import { ChainReply } from './ExternalModel';
 
-function GenerateOption(symbol: string, bid: number, ask: number): Option {
+function GenerateOption(symbol: string, bid: bigint, ask: bigint): Option {
     return {
         symbol: symbol,
         bid: bid,
@@ -18,11 +18,11 @@ function GenerateOption(symbol: string, bid: number, ask: number): Option {
 
 function GatherStrikes(chainReply: ChainReply): Array<Strike> {
     console.log( `total symbols: ${chainReply.optionSymbol.length}` )
-    let entries: Map<Number, Strike> = new Map<Number, Strike>()
+    let entries: Map<bigint, Strike> = new Map<bigint, Strike>()
 
     for( var ii = 0; ii < chainReply.optionSymbol.length; ii++ )  {
         let price = StrikePriceFromSymbol(chainReply.optionSymbol[ii])
-        let opt = GenerateOption(chainReply.optionSymbol[ii], chainReply.bid[ii], chainReply.ask[ii])
+        let opt = GenerateOption(chainReply.optionSymbol[ii], BigInt(chainReply.bid[ii]), BigInt(chainReply.ask[ii]))
         if( entries.has(price) ) {
             let strike = entries.get(price) as Strike
             if( opt.side == Side.Call ) {

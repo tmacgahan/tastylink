@@ -9,29 +9,29 @@ export enum Side {
 }
 
 export interface Option {
-    bid: number
-    ask: number
+    bid: bigint
+    ask: bigint
     side: Side
     symbol: string
 }
 
 export interface Strike {
-    price: number;  // strike price, market prices will always be bid / ask
+    price: bigint  // strike price, market prices will always be bid / ask
     call: Option | null
     put: Option | null
 }
 
 export class Expiration {
     public readonly timestamp: string     // the date of expiration in question
-    public readonly strikes: number[]
+    public readonly strikes: bigint[]
     public readonly strikeList: Strike[]
-    public readonly map: Map<number, Strike>
+    public readonly map: Map<bigint, Strike>
 
     constructor( timestamp: string, strikes: Strike[] ) {
         this.timestamp = timestamp
-        this.strikeList = strikes.sort( (strike1, strike2) => strike1.price - strike2.price )
-        let map: Map<number, Strike> = new Map<number, Strike>()
-        this.strikes = new Array<number>()
+        this.strikeList = strikes.sort( (strike1, strike2) => Number(strike1.price - strike2.price) )
+        let map: Map<bigint, Strike> = new Map<bigint, Strike>()
+        this.strikes = new Array<bigint>()
         strikes.forEach( (strike) => {
             map.set(strike.price, strike)
             this.strikes.push(strike.price)
@@ -82,8 +82,8 @@ export function SideFromSymbol(symbol: string) {
     }
 }
 
-export function StrikePriceFromSymbol(symbol: string) {
-    return parseInt(symbol.slice(symbol.length - 8, symbol.length)) / 1000
+export function StrikePriceFromSymbol(symbol: string): bigint {
+    return BigInt(symbol.slice(symbol.length - 8, symbol.length)) / 10n
 }
 
 export function ExpirationDateFromSymbol(symbol: string): Date {
@@ -98,10 +98,10 @@ export function TimestampFromSymbol(symbol: string) {
     return `${year}-${month}-${day}`;
 }
 
-export function AveragePrice(option: Option): number {
-    return (option.bid + option.ask) / 2
+export function AveragePrice(option: Option): bigint {
+    return (option.bid + option.ask) / 2n
 }
 
-export function OptionFromSymbol(symbol: string, bid: number, ask: number): Option {
+export function OptionFromSymbol(symbol: string, bid: bigint, ask: bigint): Option {
     return { symbol: symbol, side: SideFromSymbol(symbol), bid: bid, ask: ask, }
 }

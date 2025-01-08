@@ -8,21 +8,21 @@ export const symbolP = "SPY241123P00456000"
 
 export function BuildTestExpiration() {
     const underStrike: Strike = {
-        price: 455,
-        call: OptionFromSymbol("SPY241123C00455000", 1.2, 1.25),
-        put: OptionFromSymbol("SPY241123P00455000", .8, .85),
+        price: 45500n,
+        call: OptionFromSymbol("SPY241123C00455000", 120n, 125n),
+        put: OptionFromSymbol("SPY241123P00455000", 80n, 85n),
     }
 
     const atmStrike: Strike = {
-        price: 456,
-        call: OptionFromSymbol(symbolC, .95, 1.05),
-        put: OptionFromSymbol(symbolP, .95, 1.05),
+        price: 45600n,
+        call: OptionFromSymbol(symbolC, 95n, 105n),
+        put: OptionFromSymbol(symbolP, 95n, 105n),
     }
 
     const overStrike: Strike = {
-        price: 457,
-        call: OptionFromSymbol("SPY241123C00457000", .8, .85),
-        put: OptionFromSymbol("SPY241123P00457000", 1.2, 1.25),
+        price: 45700n,
+        call: OptionFromSymbol("SPY241123C00457000", 80n, 85n),
+        put: OptionFromSymbol("SPY241123P00457000", 120n, 125n),
     }
 
     return new Expiration(timestamp, [atmStrike, underStrike, overStrike]) 
@@ -38,19 +38,19 @@ describe('option', () => {
         expect(SideFromSymbol(symbolP)).to.equal(Side.Put)
     })
     it("should extract price correctly", () => {
-        expect(StrikePriceFromSymbol(symbolC)).to.equal(456)
-        expect(StrikePriceFromSymbol(symbolP)).to.equal(456)
+        expect(StrikePriceFromSymbol(symbolC)).to.equal(45600n)
+        expect(StrikePriceFromSymbol(symbolP)).to.equal(45600n)
     })
     it("should build an option correctly", () => {
-        const call = OptionFromSymbol(symbolC, .95, 1.05)
+        const call = OptionFromSymbol(symbolC, 95n, 105n)
         expect(call.side).to.equal(Side.Call)
         expect(call.symbol).to.equal(symbolC)
-        expect(AveragePrice(call)).to.equal(1)
+        expect(AveragePrice(call)).to.equal(100n)
 
-        const put = OptionFromSymbol(symbolP, .95, 1.05)
+        const put = OptionFromSymbol(symbolP, 95n, 105n)
         expect(put.side).to.equal(Side.Put)
         expect(put.symbol).to.equal(symbolP)
-        expect(AveragePrice(put)).to.equal(1)
+        expect(AveragePrice(put)).to.equal(100n)
     })
 })
 
@@ -58,13 +58,13 @@ describe('expiration', () => {
     const exp = BuildTestExpiration()
 
 	it('should sort strikes', () => {
-        expect(exp.strikeList[0].price).to.equal(455)
-        expect(exp.strikeList[1].price).to.equal(456)
-        expect(exp.strikeList[2].price).to.equal(457)
+        expect(exp.strikeList[0].price).to.equal(45500n)
+        expect(exp.strikeList[1].price).to.equal(45600n)
+        expect(exp.strikeList[2].price).to.equal(45700n)
     })
     it('should properly construct the strike map', () => {
-        expect((exp.map.get(455) as Strike).price).to.equal(455)
-        expect((exp.map.get(456) as Strike).price).to.equal(456)
-        expect((exp.map.get(457) as Strike).price).to.equal(457)
+        expect((exp.map.get(45500n) as Strike).price).to.equal(45500n)
+        expect((exp.map.get(45600n) as Strike).price).to.equal(45600n)
+        expect((exp.map.get(45700n) as Strike).price).to.equal(45700n)
     })
 })
