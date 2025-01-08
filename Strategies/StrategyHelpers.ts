@@ -1,6 +1,6 @@
 import { Expiration, Strike } from "./Chain";
 
-export function FindAtTheMoneyStrike(expiration: Expiration, money: number): Strike {
+export function FindAtTheMoneyStrike(expiration: Expiration, money: bigint): Strike {
     let found: boolean = false
     for( let ii = 0; ii < expiration.strikes.length; ii++) {
         if( money >= expiration.strikes[ii] ){

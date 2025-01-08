@@ -22,7 +22,7 @@ function GatherStrikes(chainReply: ChainReply): Array<Strike> {
 
     for( var ii = 0; ii < chainReply.optionSymbol.length; ii++ )  {
         let price = StrikePriceFromSymbol(chainReply.optionSymbol[ii])
-        let opt = GenerateOption(chainReply.optionSymbol[ii], BigInt(chainReply.bid[ii]), BigInt(chainReply.ask[ii]))
+        let opt = GenerateOption(chainReply.optionSymbol[ii], BigInt(Math.round(chainReply.bid[ii] * 100)), BigInt(Math.round(chainReply.ask[ii] * 100)))
         if( entries.has(price) ) {
             let strike = entries.get(price) as Strike
             if( opt.side == Side.Call ) {
@@ -77,7 +77,7 @@ export function DownloadChain(symbol: string, timestamp: string) {
                     expirations.push(new Expiration(item.exp, GatherStrikes(item.reply)));
                 })
 
-                let chain = new Chain(timestamp, symbol, price, expirations)
+                let chain = new Chain(timestamp, symbol, BigInt(Math.round(price * 100)), expirations)
                 chain.Save()
                 return chain
             }),

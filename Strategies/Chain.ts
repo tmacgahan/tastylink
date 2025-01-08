@@ -1,7 +1,7 @@
 import { set } from "fp-ts";
 import { Timestamp, TimestampToDate } from "../Utils/DateFunctions";
 import * as fs from 'fs';
-import { Replacer } from "../Utils/PrettyPrint";
+import { Replacer, Reviver } from "../Utils/PrettyPrint";
 
 export enum Side {
     Put = "PUT",
@@ -43,11 +43,11 @@ export class Expiration {
 export class Chain {
     public readonly timestamp: string      // the date for which the chain was pulled
     public readonly underlying: string
-    public readonly price: number          // the price of the underlying
+    public readonly price: bigint          // the price of the underlying
     public readonly expirations: Expiration[]
     public readonly dateMap: Map<string, Expiration>
 
-    constructor( timestamp: string, underlying: string, price: number, expirations: Expiration[] ) {
+    constructor( timestamp: string, underlying: string, price: bigint, expirations: Expiration[] ) {
         expirations.sort( (exp1, exp2) => exp1.timestamp.localeCompare(exp2.timestamp) )
         this.timestamp = timestamp
         this.underlying = underlying
@@ -67,7 +67,7 @@ export class Chain {
 
 export function LoadChain(underlying: string, timestamp: string): Chain {
     const name: string = `chains/chain.${underlying}.${timestamp}.json`
-    const loaded: Chain = JSON.parse(String(fs.readFileSync(name))) as Chain
+    const loaded: Chain = JSON.parse(String(fs.readFileSync(name)),Reviver) as Chain
     const expirations: Expiration[] = loaded.expirations.map( expiration => new Expiration(expiration.timestamp, expiration.strikeList))
     const result: Chain = new Chain( loaded.timestamp, loaded.underlying, loaded.price, expirations )
     return result

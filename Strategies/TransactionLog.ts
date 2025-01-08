@@ -1,4 +1,4 @@
-import { Chain, Expiration, Side, Strike, Option, ExpirationDateFromSymbol, TimestampFromSymbol, AveragePrice } from './Chain';
+import { Chain, Expiration, Side, Strike, Option, ExpirationDateFromSymbol, TimestampFromSymbol, AveragePrice, StrikePriceFromSymbol } from './Chain';
 
 export enum BuySell {
     Buy = "buy",
@@ -55,18 +55,21 @@ export class TransactionLog {
         return AveragePrice(opt)
     }
 
-    public BuyToOpen(option: Option, strike: bigint, timestamp: string, price: bigint, quantity: bigint) {
-        const tx = new Transaction(option, strike, timestamp, price, BuySell.Buy, quantity)
+    public BuyToOpen(option: Option, execDate: string, price: bigint, quantity: bigint) {
+        const strike = StrikePriceFromSymbol(option.symbol)
+        const tx = new Transaction(option, strike, execDate, price, BuySell.Buy, quantity)
         this.open.set({side: option.side, strike: strike, action: BuySell.Buy}, tx)
     }
 
-    public SellToOpen(option: Option, strike: bigint, timestamp: string, price: bigint, quantity: bigint) {
-        const tx = new Transaction(option, strike, timestamp, price, BuySell.Sell, quantity)
+    public SellToOpen(option: Option, execDate: string, price: bigint, quantity: bigint) {
+        const strike = StrikePriceFromSymbol(option.symbol)
+        const tx = new Transaction(option, strike, execDate, price, BuySell.Sell, quantity)
         this.open.set({side: option.side, strike: strike, action: BuySell.Sell},tx)
     }
 
-    public BuyToClose(option: Option, strike: bigint, timestamp: string, price: bigint, quantity: bigint) {
-        const tx = new Transaction(option, strike, timestamp, price, BuySell.Buy, quantity)
+    public BuyToClose(option: Option, execDate: string, price: bigint, quantity: bigint) {
+        const strike = StrikePriceFromSymbol(option.symbol)
+        const tx = new Transaction(option, strike, execDate, price, BuySell.Buy, quantity)
 
         const id = { side: option.side, strike: strike, action: BuySell.Sell }
         if(this.open.has(id)) {
@@ -76,15 +79,16 @@ export class TransactionLog {
             if( openTx.quantity > quantity ) {
                 this.open.set(id, new Transaction(openTx.option, openTx.strike, openTx.execution, openTx.price, openTx.action, openTx.quantity - quantity))
             } else if( openTx.quantity < quantity ) {
-                this.open.set(id, new Transaction(openTx.option, openTx.strike, timestamp, price, BuySell.Buy, quantity - openTx.price))
+                this.open.set(id, new Transaction(openTx.option, openTx.strike, execDate, price, BuySell.Buy, quantity - openTx.price))
             }
         }
 
         this.past.push(tx)
     }
 
-    public SellToClose(option: Option, strike: bigint, timestamp: string, price: bigint, quantity: bigint) {
-        const tx = new Transaction(option, strike, timestamp, price, BuySell.Sell, quantity)
+    public SellToClose(option: Option, execDate: string, price: bigint, quantity: bigint) {
+        const strike = StrikePriceFromSymbol(option.symbol)
+        const tx = new Transaction(option, strike, execDate, price, BuySell.Sell, quantity)
 
         const id = { side: option.side, strike: strike, action: BuySell.Buy }
         if(this.open.has(id)) {
@@ -94,7 +98,7 @@ export class TransactionLog {
             if( openTx.quantity > quantity ) {
                 this.open.set(id, new Transaction(openTx.option, openTx.strike, openTx.execution, openTx.price, openTx.action, openTx.quantity - quantity))
             } else if( openTx.quantity < quantity ) {
-                this.open.set(id, new Transaction(openTx.option, openTx.strike, timestamp, price, BuySell.Sell, quantity - openTx.price))
+                this.open.set(id, new Transaction(openTx.option, openTx.strike, execDate, price, BuySell.Sell, quantity - openTx.price))
             }
         }
 
@@ -127,5 +131,9 @@ export class TransactionLog {
 
     public TotalPNL(chain: Chain): bigint {
         return this.RealizedPNL() + (this.OpenPositionValue(chain) + this.OpenPositionBasis())
+    }
+
+    public OpenPositions(): Option[] {
+        return Array.from(this.open.values()).map( tx => tx.option )
     }
 }
