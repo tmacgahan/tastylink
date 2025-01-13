@@ -10,7 +10,7 @@ describe('transaction', () => {
     const call = strike.call as Option
     const put = strike.put as Option
 
-	it('should account call sell correctly', () => {
+	it('account call sell correctly', () => {
         const txLog = new TransactionLog()
 
         txLog.SellToOpen(call, timestamp, AveragePrice(call), 1n)
@@ -20,7 +20,7 @@ describe('transaction', () => {
         expect(txLog.OpenPositionValue(chain)).to.equal(0n)
     })
 
-    it('should account call buy correctly', () => {
+    it('account call buy correctly', () => {
         const txLog = new TransactionLog()
 
         txLog.BuyToOpen(call, timestamp, AveragePrice(call), 1n)
@@ -30,7 +30,7 @@ describe('transaction', () => {
         expect(txLog.OpenPositionValue(chain)).to.equal(0n)
     })
 
-	it('should account put sell correctly', () => {
+	it('account put sell correctly', () => {
         const txLog = new TransactionLog()
 
         txLog.SellToOpen(put, timestamp, AveragePrice(put), 1n)
@@ -40,7 +40,7 @@ describe('transaction', () => {
         expect(txLog.OpenPositionValue(chain)).to.equal(0n)
     })
 
-    it('should account put buy correctly', () => {
+    it('account put buy correctly', () => {
         const txLog = new TransactionLog()
 
         txLog.BuyToOpen(put, timestamp, AveragePrice(put), 1n)
@@ -50,7 +50,7 @@ describe('transaction', () => {
         expect(txLog.OpenPositionValue(chain)).to.equal(0n)
     })
 
-    it('should tally PNL correctly', () => {
+    it('tally PNL correctly', () => {
         const txLog = new TransactionLog()
         txLog.BuyToOpen(call, timestamp, AveragePrice(call), 1n)
         expect(txLog.OpenPositionValue(chain)).to.equal(AveragePrice(call))
