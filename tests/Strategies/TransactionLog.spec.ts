@@ -13,7 +13,7 @@ describe('transaction', () => {
 	it('should account call sell correctly', () => {
         const txLog = new TransactionLog()
 
-        txLog.SellToOpen(call, strike.price, timestamp, AveragePrice(call), 1n)
+        txLog.SellToOpen(call, timestamp, AveragePrice(call), 1n)
         expect(txLog.OpenPositionValue(chain)).to.equal(-AveragePrice(call))
         expect(txLog.OpenPositionValue(chain) < 0n).to.be.true
         txLog.CloseAllOpenPositions(chain)
@@ -23,7 +23,7 @@ describe('transaction', () => {
     it('should account call buy correctly', () => {
         const txLog = new TransactionLog()
 
-        txLog.BuyToOpen(call, strike.price, timestamp, AveragePrice(call), 1n)
+        txLog.BuyToOpen(call, timestamp, AveragePrice(call), 1n)
         expect(txLog.OpenPositionValue(chain)).to.equal(AveragePrice(call))
         expect(txLog.OpenPositionValue(chain) > 0n).to.be.true
         txLog.CloseAllOpenPositions(chain)
@@ -33,7 +33,7 @@ describe('transaction', () => {
 	it('should account put sell correctly', () => {
         const txLog = new TransactionLog()
 
-        txLog.SellToOpen(put, strike.price, timestamp, AveragePrice(put), 1n)
+        txLog.SellToOpen(put, timestamp, AveragePrice(put), 1n)
         expect(txLog.OpenPositionValue(chain)).to.equal(-AveragePrice(put))
         expect(txLog.OpenPositionValue(chain) < 0n).to.be.true
         txLog.CloseAllOpenPositions(chain)
@@ -43,7 +43,7 @@ describe('transaction', () => {
     it('should account put buy correctly', () => {
         const txLog = new TransactionLog()
 
-        txLog.BuyToOpen(put, strike.price, timestamp, AveragePrice(put), 1n)
+        txLog.BuyToOpen(put, timestamp, AveragePrice(put), 1n)
         expect(txLog.OpenPositionValue(chain)).to.equal(AveragePrice(put))
         expect(txLog.OpenPositionValue(chain) > 0n).to.be.true
         txLog.CloseAllOpenPositions(chain)
@@ -52,9 +52,9 @@ describe('transaction', () => {
 
     it('should tally PNL correctly', () => {
         const txLog = new TransactionLog()
-        txLog.BuyToOpen(call, strike.price, timestamp, AveragePrice(call), 1n)
+        txLog.BuyToOpen(call, timestamp, AveragePrice(call), 1n)
         expect(txLog.OpenPositionValue(chain)).to.equal(AveragePrice(call))
-        txLog.SellToOpen(put, strike.price, timestamp, AveragePrice(put), 2n)
+        txLog.SellToOpen(put, timestamp, AveragePrice(put), 2n)
         expect(txLog.RealizedPNL()).to.equal(0n)
         expect(txLog.OpenPositionValue(chain)).to.equal(AveragePrice(call) - (2n * AveragePrice(put)))
         expect(txLog.OpenPositionBasis()).to.equal(-txLog.OpenPositionValue(chain))

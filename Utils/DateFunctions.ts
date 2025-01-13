@@ -25,9 +25,10 @@ export function TimestampToDate(timestamp: string) {
         parseInt(timestamp.slice(5,7)) - 1,
         parseInt(timestamp.slice(8,10))
     );
-    result.setUTCHours(12);
-    result.setUTCMinutes(0);
-    result.setUTCMilliseconds(0);
+    result.setUTCHours(12)
+    result.setUTCMinutes(0)
+    result.setSeconds(0)
+    result.setUTCMilliseconds(0)
 
     return result;
 }
@@ -124,7 +125,7 @@ export function PreviousMarketDay(date: Date): Date {
 export function MarketDaysBetween(from: Date, to: Date): Date[] {
     let result: Date[] = new Array<Date>();
     let curr = IsMarketDay(from) ? from : NextMarketDay(from)
-    console.log( `starting with ${curr}` );
+
     while( curr.getTime() <= to.getTime() + 1 ) {
         result.push(curr);
         curr = NextMarketDay(curr);
