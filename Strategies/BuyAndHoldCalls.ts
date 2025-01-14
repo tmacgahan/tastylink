@@ -2,6 +2,7 @@ import { Chain, Expiration, Option, Strike, StrikePriceFromSymbol, AveragePrice,
 import { FindAtTheMoneyStrike } from './StrategyHelpers'
 import { MarketStrategy } from './MarketStrategy'
 import { TransactionLog } from './TransactionLog'
+import { CSV } from './CSV'
 
 export class BuyAndHoldCalls implements MarketStrategy {
     private startDate: string
@@ -20,5 +21,9 @@ export class BuyAndHoldCalls implements MarketStrategy {
 
     public AccountValue(chain: Chain): bigint {
         return this.transactions.TotalPNL(chain)
+    }
+
+    public ToCSV(): CSV {
+        return this.transactions.ToCSV()
     }
 }

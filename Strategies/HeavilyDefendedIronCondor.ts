@@ -1,11 +1,12 @@
 import { Chain } from "./Chain";
+import { CSV } from "./CSV";
 import { MarketStrategy } from "./MarketStrategy";
 import { TransactionLog } from "./TransactionLog";
 
 export class HeavilyDefendedIronCondor implements MarketStrategy {
     private transactions: TransactionLog = new TransactionLog()
 
-    MaintainPosition(date: string, chain: Chain) {
+    public MaintainPosition(date: string, chain: Chain) {
         if(this.transactions.OpenPositions().length == 0) {
             // sell iron condor at 45 days
         }
@@ -16,7 +17,11 @@ export class HeavilyDefendedIronCondor implements MarketStrategy {
         // if we only have one side, push it towards out of the money with the proceeds of selling the other wing
     }
 
-    AccountValue(chain: Chain): bigint {
+    public AccountValue(chain: Chain): bigint {
         return 0n
+    }
+
+    public ToCSV(): CSV {
+        return this.transactions.ToCSV()
     }
 }

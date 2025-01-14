@@ -1,6 +1,7 @@
 import { Chain, Expiration, Option, Strike, StrikePriceFromSymbol, AveragePrice, TimestampFromSymbol } from './Chain'
+import { CSV } from './CSV'
 import { MarketStrategy } from './MarketStrategy'
-import { FindAtTheMoneyStrike } from './StrategyHelpers'
+import { FindStrike } from './StrategyHelpers'
 import { TransactionLog } from './TransactionLog'
 
 export class RollATMStrangleDaily implements MarketStrategy {
@@ -13,7 +14,7 @@ export class RollATMStrangleDaily implements MarketStrategy {
     }
 
     private OpenPosition(date: string, chain: Chain) {
-        let strike = FindAtTheMoneyStrike(chain.expirations[1], chain.price)
+        let strike = FindStrike(chain.expirations[1], chain.price)
         let call = strike.call as Option
         let put = strike.put as Option
         this.transactions.SellToOpen(call, date, AveragePrice(call), 1n)
@@ -22,5 +23,9 @@ export class RollATMStrangleDaily implements MarketStrategy {
 
     public AccountValue(chain: Chain): bigint {
         return this.transactions.TotalPNL(chain)
+    }
+
+    public ToCSV(): CSV {
+        return this.transactions.ToCSV()
     }
 }
