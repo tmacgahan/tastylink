@@ -31,7 +31,7 @@ export class CSV implements Iterable<string[]>{
 
     sortBy(column: string, ascending: boolean = true) {
         if( !this.header.has(column) ) {
-            throw new Error(`trying to access column ${column} but available columns are ${this.header.keys}`)
+            throw new Error(`trying to access column ${column} but available columns are ${Array.from(this.header.keys())}`)
         }
 
         const colNum = this.header.get(column) as number

@@ -32,16 +32,16 @@ export function BuildTestChain() {
     return new Chain(timestamp, "SPY", 456n, [BuildTestExpiration()])
 }
 
-describe('option', () => {
-    it('extract side correctly', () => {
+describe('Option', () => {
+    it('extracts side correctly', () => {
         expect(SideFromSymbol(symbolC)).to.equal(Side.Call)
         expect(SideFromSymbol(symbolP)).to.equal(Side.Put)
     })
-    it('extract price correctly', () => {
+    it('extracts price correctly', () => {
         expect(StrikePriceFromSymbol(symbolC)).to.equal(45600n)
         expect(StrikePriceFromSymbol(symbolP)).to.equal(45600n)
     })
-    it('build an option correctly', () => {
+    it('builds an option correctly', () => {
         const call = OptionFromSymbol(symbolC, 95n, 105n)
         expect(call.side).to.equal(Side.Call)
         expect(call.symbol).to.equal(symbolC)
@@ -54,15 +54,15 @@ describe('option', () => {
     })
 })
 
-describe('expiration', () => {
+describe('Expiration', () => {
     const exp = BuildTestExpiration()
 
-	it('sort strikes', () => {
+	it('sorts strikes', () => {
         expect(exp.strikeList[0].price).to.equal(45500n)
         expect(exp.strikeList[1].price).to.equal(45600n)
         expect(exp.strikeList[2].price).to.equal(45700n)
     })
-    it('properly construct the strike map', () => {
+    it('properly constructs the strike map', () => {
         expect((exp.map.get(45500n) as Strike).price).to.equal(45500n)
         expect((exp.map.get(45600n) as Strike).price).to.equal(45600n)
         expect((exp.map.get(45700n) as Strike).price).to.equal(45700n)

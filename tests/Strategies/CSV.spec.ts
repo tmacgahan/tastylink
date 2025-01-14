@@ -9,7 +9,7 @@ describe('CSV', () => {
     csv.push( "1", "2", "3" )
     csv.push( "4", "5", "6" )
 
-    it('correctly build a csv', () => {
+    it('correctly builds a csv', () => {
         expect(csv.length()).to.equal(2)
         expect(csv.row(0)).deep.equal(["1", "2", "3"])
         expect(csv.row(1)).deep.equal(["4", "5", "6"])

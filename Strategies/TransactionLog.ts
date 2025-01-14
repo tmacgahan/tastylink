@@ -1,4 +1,5 @@
 import { Chain, Expiration, Side, Strike, Option, ExpirationDateFromSymbol, TimestampFromSymbol, AveragePrice, StrikePriceFromSymbol } from './Chain';
+import { CSV } from './CSV';
 
 export enum BuySell {
     Buy = "buy",
@@ -139,5 +140,22 @@ export class TransactionLog {
 
     public OpenPositions(): Option[] {
         return Array.from(this.open.values()).map( tx => tx.option )
+    }
+
+    public ToCSV(): CSV {
+        const csv = new CSV( "option symbol", "strike", "execution date", "price", "action", "quantity", "value" )
+        this.past.forEach( tx => csv.push(
+            tx.option.symbol, String(tx.strike), String(tx.execution), String(tx.price), tx.action, String(tx.quantity), String(tx.value)
+        ))
+        this.open.forEach( tx => csv.push(
+            tx.option.symbol, String(tx.strike), String(tx.execution), String(tx.price), tx.action, String(tx.quantity), String(tx.value)
+        ))
+        csv.sortBy("execution date")
+
+        return csv
+    }
+
+    public toString(): string {
+        return this.ToCSV().toString()
     }
 }
