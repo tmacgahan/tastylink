@@ -35,6 +35,10 @@ interface PositionID {
     action: BuySell
 }
 
+/**
+ * Log transactions in an intuitive way so that we can do a good accounting at the end
+ * of a run.  Should be able to get a nice csv out of it.
+ */
 export class TransactionLog {
     private open: Map<PositionID, Transaction> = new Map<PositionID, Transaction>()
     private past: Transaction[] = new Array<Transaction>()
