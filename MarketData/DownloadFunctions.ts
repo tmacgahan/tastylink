@@ -2,12 +2,11 @@ import * as E from 'fp-ts/Either'
 import * as T from 'fp-ts/TaskEither'
 import { pipe } from 'fp-ts/function'
 import { MarketDataRMI } from './MarketDataRMI';
-import { Side, Option, Strike, Expiration, Chain, SideFromSymbol, StrikePriceFromSymbol } from '../Strategies/Chain';
-import { TimestampToDate } from '../Utils/DateFunctions';
+import { Side, Security, Strike, Expiration, Chain, SideFromSymbol, StrikePriceFromSymbol } from '../Strategies/Chain';
 import { Replacer } from '../Utils/PrettyPrint'
 import { ChainReply } from './ExternalModel';
 
-function GenerateOption(symbol: string, bid: bigint, ask: bigint): Option {
+function GenerateOption(symbol: string, bid: bigint, ask: bigint): Security {
     return {
         symbol: symbol,
         bid: bid,

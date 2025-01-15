@@ -1,29 +1,14 @@
-import { Chain, Expiration, Option, Strike, StrikePriceFromSymbol, AveragePrice, TimestampFromSymbol } from './Chain'
-import { FindAtTheMoneyStrike } from './StrategyHelpers'
-import { MarketStrategy } from './MarketStrategy'
-import { TransactionLog } from './TransactionLog'
+import { Chain, Security, AveragePrice } from './Chain'
+import { FindStrike } from './FStrategyHelpers'
+import { IMarketStrategy } from './IMarketStrategy'
+import { Ledger } from './Ledger'
 import { CSV } from './CSV'
 
-export class BuyAndHoldCalls implements MarketStrategy {
-    private startDate: string
-    private transactions: TransactionLog = new TransactionLog()
-
-    constructor(startDate: string) {
-        this.startDate = startDate
-    }
-
+export class BuyAndHoldCalls extends IMarketStrategy {
     public MaintainPosition(date: string, chain: Chain) {
-        if(this.transactions.OpenPositions().length == 0) {
-            const call = FindAtTheMoneyStrike(chain.expirations[chain.expirations.length - 1], chain.price).call as Option
-            this.transactions.BuyToOpen(call, date, AveragePrice(call), 1n)
+        if(this.ledger.OpenPositions().length == 0) {
+            const call = FindStrike(chain.expirations[chain.expirations.length - 1], chain.price).call as Security
+            this.ledger.Buy(call, date, AveragePrice(call), 1n)
         }
-    }
-
-    public AccountValue(chain: Chain): bigint {
-        return this.transactions.TotalPNL(chain)
-    }
-
-    public ToCSV(): CSV {
-        return this.transactions.ToCSV()
     }
 }

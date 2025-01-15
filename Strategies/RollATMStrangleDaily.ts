@@ -1,31 +1,19 @@
-import { Chain, Expiration, Option, Strike, StrikePriceFromSymbol, AveragePrice, TimestampFromSymbol } from './Chain'
-import { CSV } from './CSV'
-import { MarketStrategy } from './MarketStrategy'
-import { FindStrike } from './StrategyHelpers'
-import { TransactionLog } from './TransactionLog'
+import { Chain, Security, AveragePrice } from './Chain'
+import { IMarketStrategy } from './IMarketStrategy'
+import { FindStrike } from './FStrategyHelpers'
 
-export class RollATMStrangleDaily implements MarketStrategy {
-    private transactions: TransactionLog = new TransactionLog()
-
+export class RollATMStrangleDaily extends IMarketStrategy {
     public MaintainPosition(date: string, chain: Chain) {
         console.log( `processing positions for date: ${date}` )
-        this.transactions.CloseAllOpenPositions(chain)
+        this.ledger.CloseAllOpenPositions(chain)
         this.OpenPosition(date, chain)
     }
 
     private OpenPosition(date: string, chain: Chain) {
         let strike = FindStrike(chain.expirations[1], chain.price)
-        let call = strike.call as Option
-        let put = strike.put as Option
-        this.transactions.SellToOpen(call, date, AveragePrice(call), 1n)
-        this.transactions.SellToOpen(put, date, AveragePrice(put), 1n)
-    }
-
-    public AccountValue(chain: Chain): bigint {
-        return this.transactions.TotalPNL(chain)
-    }
-
-    public ToCSV(): CSV {
-        return this.transactions.ToCSV()
+        let call = strike.call as Security
+        let put = strike.put as Security
+        this.ledger.Sell(call, date, AveragePrice(call), 1n)
+        this.ledger.Sell(put, date, AveragePrice(put), 1n)
     }
 }

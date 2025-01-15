@@ -3,7 +3,7 @@ import * as T from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/function';
 import { CacheKey } from '../Utils/CacheKey';
 import { ChainReply, ExpirationsReply, CandleReply, Resolution, GeneralReply } from './ExternalModel';
-import { TimestampsToDte } from '../Utils/DateFunctions';
+import { TimestampToDte } from '../Utils/DateFunctions';
 import  Semaphore = require( 'ts-semaphore' );
 
 
@@ -97,7 +97,7 @@ export class MarketDataRMI {
             `https://api.marketdata.app/v1/options/chain/${symbol}?${new URLSearchParams({
                 date: queryDate,
                 expirations: "all",
-                dte: String(TimestampsToDte(queryDate, expirationDate)),
+                dte: String(TimestampToDte(queryDate, expirationDate)),
                 columns: "s,optionSymbol,bid,ask", // we need to ask sfor the s column, or we won't get the status column and won't be able to tell a failed result from a valid one
             })}`,
         )

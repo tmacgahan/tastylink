@@ -33,7 +33,7 @@ export function TimestampToDate(timestamp: string) {
     return result;
 }
 
-export function TimestampsToDte(queryDate: string, expirationDate: string) {
+export function TimestampToDte(queryDate: string, expirationDate: string) {
     return Math.ceil(
           (TimestampToDate(expirationDate).getTime() - TimestampToDate(queryDate).getTime())
         / (1000 * 3600 * 24)

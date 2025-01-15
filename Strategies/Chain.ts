@@ -6,9 +6,10 @@ import { Replacer, Reviver } from "../Utils/PrettyPrint";
 export enum Side {
     Put = "PUT",
     Call = "CALL",
+    Underlying = "UNDERLYING"
 }
 
-export interface Option {
+export interface Security {
     bid: bigint
     ask: bigint
     side: Side
@@ -17,8 +18,8 @@ export interface Option {
 
 export interface Strike {
     price: bigint  // strike price, market prices will always be bid / ask
-    call: Option | null
-    put: Option | null
+    call: Security | null
+    put: Security | null
 }
 
 export class Expiration {
@@ -98,10 +99,10 @@ export function TimestampFromSymbol(symbol: string) {
     return `${year}-${month}-${day}`;
 }
 
-export function AveragePrice(option: Option): bigint {
+export function AveragePrice(option: Security): bigint {
     return (option.bid + option.ask) / 2n
 }
 
-export function OptionFromSymbol(symbol: string, bid: bigint, ask: bigint): Option {
+export function OptionFromSymbol(symbol: string, bid: bigint, ask: bigint): Security {
     return { symbol: symbol, side: SideFromSymbol(symbol), bid: bid, ask: ask, }
 }
