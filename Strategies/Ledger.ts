@@ -1,5 +1,5 @@
 import { Timestamp, TimestampToDte } from '../Utils/DateFunctions';
-import { Chain, Expiration, Side, Strike, Security, ExpirationDateFromSymbol, TimestampFromSymbol, AveragePrice, StrikePriceFromSymbol, SideFromSymbol } from './Chain';
+import { Chain, Expiration, Side, Symbol, Security, ExpirationDateFromSymbol, TimestampFromSymbol, AveragePrice, StrikePriceFromSymbol, SideFromSymbol } from './Chain';
 import { CSV } from './CSV';
 
 export enum BuySell {
@@ -12,14 +12,14 @@ export function Opposite(action: BuySell) {
 }
 
 export class Transaction {
-    public readonly symbol: string
+    public readonly symbol: Symbol
     public readonly execution: string
     public readonly price: bigint
     public readonly action: BuySell
     public readonly quantity: bigint
     public readonly value: bigint
 
-    constructor( symbol: string, execution: string, price: bigint, action: BuySell, quantity: bigint ) {
+    constructor( symbol: Symbol, execution: string, price: bigint, action: BuySell, quantity: bigint ) {
         this.symbol = symbol
         this.execution = execution
         this.price = price
@@ -34,7 +34,7 @@ export class Transaction {
  * of a run.  Should be able to get a nice csv out of it.
  */
 export class Ledger {
-    private open: Map<string, bigint> = new Map<string, bigint>()
+    private open: Map<Symbol, bigint> = new Map<Symbol, bigint>()
     private past: Transaction[] = new Array<Transaction>()
 
     private FindPrice(chain: Chain, symbol: string): bigint {
@@ -78,7 +78,7 @@ export class Ledger {
     }
 
     public Sell(security: Security, execDate: string, price: bigint, quantity: bigint) {
-        this.past.push(new Transaction(security.symbol, execDate, price, BuySell.Buy, quantity))
+        this.past.push(new Transaction(security.symbol, execDate, price, BuySell.Sell, quantity))
 
         if(this.open.has(security.symbol)) {
             const owned = this.open.get(security.symbol) as bigint
@@ -92,7 +92,7 @@ export class Ledger {
         }
     }
 
-    private ClosePosition(symbol: string, price: bigint, execDate: string) {
+    private ClosePosition(symbol: Symbol, price: bigint, execDate: string) {
         const quantity = this.open.get(symbol) as bigint
         this.past.push(new Transaction(symbol, execDate, price, quantity > 0 ? BuySell.Sell : BuySell.Buy, -quantity))
         this.open.delete(symbol)
@@ -103,7 +103,10 @@ export class Ledger {
     }
 
     public RealizedPNL(): bigint {
-        return this.past.reduce( (accum: bigint, curr: Transaction) => accum + curr.value * curr.quantity, 0n )
+        const sum = this.past.reduce( (accum: bigint, curr: Transaction) => accum + curr.value, 0n )
+        const basis = this.OpenPositionBasis()
+
+        return sum + basis
     }
 
     public OpenPositionValue(chain: Chain): bigint {
@@ -124,7 +127,7 @@ export class Ledger {
                 const tx = this.past[ii]
                 if( tx.symbol === symbol ) {
                     qty -= tx.quantity
-                    thisBasis += tx.price * tx.quantity
+                    thisBasis += tx.price * tx.quantity * (tx.action === BuySell.Buy ? 1n : -1n)
                     if( qty === 0n ) {
                         break
                     } else if ( long && qty <= 0 || !long && qty >= 0 ) {
@@ -132,24 +135,24 @@ export class Ledger {
                         break
                     }
                 }
-
-                sum += thisBasis
             }
+
+            sum += thisBasis
         })
 
         return sum
     }
 
     public TotalPNL(chain: Chain): bigint {
-        return this.RealizedPNL() + (this.OpenPositionValue(chain) + this.OpenPositionBasis())
+        return this.RealizedPNL() + (this.OpenPositionValue(chain) - this.OpenPositionBasis())
     }
 
-    public OpenPositions(): Array<[string, bigint]> {
+    public OpenPositions(): Array<[Symbol, bigint]> {
         return Array.from(this.open).sort()
     }
 
     public ToCSV(): CSV {
-        const csv = new CSV( "symbol", "strike", "execution date", "price", "action", "quantity", "value" )
+        const csv = new CSV( "symbol", "execution date", "price", "action", "quantity", "value" )
         this.past.forEach( tx => csv.push(
             tx.symbol, String(tx.execution), String(tx.price), tx.action, String(tx.quantity), String(tx.value)
         ))

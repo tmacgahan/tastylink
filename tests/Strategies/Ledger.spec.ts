@@ -14,7 +14,6 @@ describe('Ledger', () => {
         const ledger = new Ledger()
 
         ledger.Sell(call, timestamp, AveragePrice(call), 1n)
-        console.log( ledger.ToCSV().toString() )
         expect(ledger.OpenPositionValue(chain)).to.equal(-AveragePrice(call))
         expect(ledger.OpenPositionValue(chain) < 0n).to.be.true
         ledger.CloseAllOpenPositions(chain)
@@ -56,9 +55,9 @@ describe('Ledger', () => {
         ledger.Buy(call, timestamp, AveragePrice(call), 1n)
         expect(ledger.OpenPositionValue(chain)).to.equal(AveragePrice(call))
         ledger.Sell(put, timestamp, AveragePrice(put), 2n)
-        expect(ledger.RealizedPNL()).to.equal(0n)
         expect(ledger.OpenPositionValue(chain)).to.equal(AveragePrice(call) - (2n * AveragePrice(put)))
-        expect(ledger.OpenPositionBasis()).to.equal(-ledger.OpenPositionValue(chain))
+        expect(ledger.OpenPositionBasis()).to.equal(ledger.OpenPositionValue(chain))
+        expect(ledger.RealizedPNL()).to.equal(0n)
         expect(ledger.TotalPNL(chain)).to.equal(0n)
     })
 
@@ -67,9 +66,9 @@ describe('Ledger', () => {
         ledger.Buy(call, "2024-11-23", AveragePrice(call), 1n)
         ledger.Sell(put, "2024-11-24", AveragePrice(put), 2n)
         expect(ledger.ToCSV().toString()).to.equal(
-            "option symbol, strike, execution date, price, action, quantity, value\n" +
-            "SPY241123C00455000, 45500, 2024-11-23, 122, buy, 1, -122\n" +
-            "SPY241123P00455000, 45500, 2024-11-24, 82, sell, 2, 164"
+            "symbol, execution date, price, action, quantity, value\n" +
+            "SPY241123C00455000, 2024-11-23, 122, buy, 1, -122\n" +
+            "SPY241123P00455000, 2024-11-24, 82, sell, 2, 164"
         )
     })
 })

@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import 'mocha';
-import { AveragePrice, OptionFromSymbol, Side, SideFromSymbol, Strike, StrikePriceFromSymbol, Expiration, Chain } from '../../Strategies/Chain';
+import { AveragePrice, SecurityFromSymbol, Side, SideFromSymbol, Strike, StrikePriceFromSymbol, Expiration, Chain } from '../../Strategies/Chain';
 
 export const timestamp = "2024-11-23"
 export const symbolC = "SPY241123C00456000"
@@ -9,20 +9,20 @@ export const symbolP = "SPY241123P00456000"
 export function BuildTestExpiration() {
     const underStrike: Strike = {
         price: 45500n,
-        call: OptionFromSymbol("SPY241123C00455000", 120n, 125n),
-        put: OptionFromSymbol("SPY241123P00455000", 80n, 85n),
+        call: SecurityFromSymbol("SPY241123C00455000", 120n, 125n),
+        put: SecurityFromSymbol("SPY241123P00455000", 80n, 85n),
     }
 
     const atmStrike: Strike = {
         price: 45600n,
-        call: OptionFromSymbol(symbolC, 95n, 105n),
-        put: OptionFromSymbol(symbolP, 95n, 105n),
+        call: SecurityFromSymbol(symbolC, 95n, 105n),
+        put: SecurityFromSymbol(symbolP, 95n, 105n),
     }
 
     const overStrike: Strike = {
         price: 45700n,
-        call: OptionFromSymbol("SPY241123C00457000", 80n, 85n),
-        put: OptionFromSymbol("SPY241123P00457000", 120n, 125n),
+        call: SecurityFromSymbol("SPY241123C00457000", 80n, 85n),
+        put: SecurityFromSymbol("SPY241123P00457000", 120n, 125n),
     }
 
     return new Expiration(timestamp, [atmStrike, underStrike, overStrike]) 
@@ -42,12 +42,12 @@ describe('Option', () => {
         expect(StrikePriceFromSymbol(symbolP)).to.equal(45600n)
     })
     it('builds an option correctly', () => {
-        const call = OptionFromSymbol(symbolC, 95n, 105n)
+        const call = SecurityFromSymbol(symbolC, 95n, 105n)
         expect(call.side).to.equal(Side.Call)
         expect(call.symbol).to.equal(symbolC)
         expect(AveragePrice(call)).to.equal(100n)
 
-        const put = OptionFromSymbol(symbolP, 95n, 105n)
+        const put = SecurityFromSymbol(symbolP, 95n, 105n)
         expect(put.side).to.equal(Side.Put)
         expect(put.symbol).to.equal(symbolP)
         expect(AveragePrice(put)).to.equal(100n)

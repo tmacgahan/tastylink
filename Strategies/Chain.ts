@@ -1,7 +1,10 @@
-import { set } from "fp-ts";
 import { Timestamp, TimestampToDate } from "../Utils/DateFunctions";
 import * as fs from 'fs';
 import { Replacer, Reviver } from "../Utils/PrettyPrint";
+
+export type Symbol = string
+
+export const END_OF_TIME = TimestampToDate("9999-12-31")
 
 export enum Side {
     Put = "PUT",
@@ -13,7 +16,7 @@ export interface Security {
     bid: bigint
     ask: bigint
     side: Side
-    symbol: string
+    symbol: Symbol
 }
 
 export interface Strike {
@@ -75,9 +78,8 @@ export function LoadChain(underlying: string, timestamp: string): Chain {
 }
 
 ///// helpers /////
-export function SideFromSymbol(symbol: string) {
-    console.log( "implement underlying side extraction in fn SideFromSymbol" )
-    if( false ) {
+export function SideFromSymbol(symbol: Symbol) {
+    if( symbol.length > 0 && symbol.length <= 5 ) {
         return Side.Underlying
     } else if(`${symbol.slice(symbol.length - 9, symbol.length - 8)}`.toUpperCase() == "P") {
         return Side.Put
@@ -86,18 +88,26 @@ export function SideFromSymbol(symbol: string) {
     }
 }
 
-export function StrikePriceFromSymbol(symbol: string): bigint {
+export function StrikePriceFromSymbol(symbol: Symbol): bigint {
+    if( SideFromSymbol(symbol) === Side.Underlying ) {
+        return 0n
+    }
+
     return BigInt(symbol.slice(symbol.length - 8, symbol.length)) / 10n
 }
 
-export function ExpirationDateFromSymbol(symbol: string): Date {
+export function ExpirationDateFromSymbol(symbol: Symbol): Date {
+    if( SideFromSymbol(symbol) === Side.Underlying ) {
+        return END_OF_TIME
+    }
+
     return TimestampToDate(TimestampFromSymbol(symbol))
 }
 
-export function TimestampFromSymbol(symbol: string) {
-    let day = symbol.slice(symbol.length - 11, symbol.length - 9)
-    let month = symbol.slice(symbol.length - 13, symbol.length - 11)
-    let year = `20${symbol.slice(symbol.length - 15, symbol.length - 13)}`
+export function TimestampFromSymbol(symbol: Symbol) {
+    const day = symbol.slice(symbol.length - 11, symbol.length - 9)
+    const month = symbol.slice(symbol.length - 13, symbol.length - 11)
+    const year = `20${symbol.slice(symbol.length - 15, symbol.length - 13)}`
 
     return `${year}-${month}-${day}`;
 }
@@ -106,6 +116,6 @@ export function AveragePrice(option: Security): bigint {
     return (option.bid + option.ask) / 2n
 }
 
-export function OptionFromSymbol(symbol: string, bid: bigint, ask: bigint): Security {
+export function SecurityFromSymbol(symbol: Symbol, bid: bigint, ask: bigint): Security {
     return { symbol: symbol, side: SideFromSymbol(symbol), bid: bid, ask: ask, }
 }

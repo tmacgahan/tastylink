@@ -11,7 +11,8 @@ export class CSV implements Iterable<string[]>{
 
     push(...row: string[]) {
         if( this.header.size != row.length ) {
-            throw new Error(`tried to push row with ${row.length} columns but expected ${this.header} columns`)
+            const colStr = this.rows[0].reduce( (ac, cu) => ac + cu + "|", "|" )
+            throw new Error(`tried to push row with ${row.length} columns but expected [${colStr}] columns`)
         }
 
         this.rows.push(row)
