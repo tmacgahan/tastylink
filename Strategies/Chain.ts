@@ -6,7 +6,7 @@ import { Replacer, Reviver } from "../Utils/PrettyPrint";
 export enum Side {
     Put = "PUT",
     Call = "CALL",
-    Underlying = "UNDERLYING"
+    Underlying = "UNDERLYING",
 }
 
 export interface Security {
@@ -76,7 +76,10 @@ export function LoadChain(underlying: string, timestamp: string): Chain {
 
 ///// helpers /////
 export function SideFromSymbol(symbol: string) {
-    if(`${symbol.slice(symbol.length - 9, symbol.length - 8)}`.toUpperCase() == "P") {
+    console.log( "implement underlying side extraction in fn SideFromSymbol" )
+    if( false ) {
+        return Side.Underlying
+    } else if(`${symbol.slice(symbol.length - 9, symbol.length - 8)}`.toUpperCase() == "P") {
         return Side.Put
     } else {
         return Side.Call
