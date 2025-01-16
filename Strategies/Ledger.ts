@@ -160,23 +160,21 @@ export class Ledger {
         return csv
     }
 
+    // this requires testing
     public ResolveEOD(chain: Chain): void {
         this.OpenPositions().forEach( position => {
             const symbol = position[0]
-            const qty = position[1]
             const side = SideFromSymbol(symbol)
             const expirationDate = Timestamp(ExpirationDateFromSymbol(symbol))
             const dte = TimestampToDte (chain.timestamp, expirationDate)
 
             if( side !== Side.Underlying && dte < 1 ) {
-                // is it long or short?
-                // if short and itm assign
-                // if long and itm exercise
-
                 const strikePrice = StrikePriceFromSymbol(symbol)
                 const otm = side === Side.Call ? strikePrice >= chain.price : strikePrice >= chain.price
-                const worth = otm ? 0 : chain.price - strikePrice * ( side === Side.Call ? 1n : -1n )
                 if( !otm ) {
+                    this.Assign(symbol, chain.timestamp)
+                } else {
+                    this.Expire(symbol, chain.timestamp)
                 }
             }
         })
