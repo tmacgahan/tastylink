@@ -119,3 +119,11 @@ export function AveragePrice(option: Security): bigint {
 export function SecurityFromSymbol(symbol: Symbol, bid: bigint, ask: bigint): Security {
     return { symbol: symbol, side: SideFromSymbol(symbol), bid: bid, ask: ask, }
 }
+
+export function UnderlyingFromSymbol(symbol: Symbol): Symbol {
+    if( SideFromSymbol(symbol) === Side.Underlying ) {
+        return symbol
+    }
+
+    return symbol.slice(0, symbol.length -17)
+}

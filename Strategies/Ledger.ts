@@ -1,5 +1,5 @@
 import { Timestamp, TimestampToDte } from '../Utils/DateFunctions';
-import { Chain, Expiration, Side, Symbol, Security, ExpirationDateFromSymbol, TimestampFromSymbol, AveragePrice, StrikePriceFromSymbol, SideFromSymbol } from './Chain';
+import { Chain, Expiration, Side, Symbol, Security, ExpirationDateFromSymbol, TimestampFromSymbol, AveragePrice, StrikePriceFromSymbol, SideFromSymbol, SecurityFromSymbol, UnderlyingFromSymbol } from './Chain';
 import { CSV } from './CSV';
 
 export enum BuySell {
@@ -186,22 +186,41 @@ export class Ledger {
     public LiquidateUnderlyings(chain: Chain) {}
 
     // process an assignment event
-    private Assign(symbol: string, execDate: string) {
+    private Assign(symbol: Symbol, execDate: string) {
         Array.from(this.open.entries()).filter( kvp => { kvp[0] === symbol }).forEach( kvp => {
             this.ClosePosition(kvp[0], 0n, execDate)
-            const qty = kvp[1]
+
+            const qty = kvp[1] * 100n
+            const price = StrikePriceFromSymbol(symbol)
+            const underlying = UnderlyingFromSymbol(symbol)
+
             if(SideFromSymbol(symbol) === Side.Call) {
-                // we need to sell to close the amount of underlying we have, and sell to open the amount that we do not
-                console.log( "implement me!" )
+                this.past.push(new Transaction(underlying, execDate, price, BuySell.Sell, qty))
+            } else {
+                this.past.push(new Transaction(underlying, execDate, price, BuySell.Buy, qty))
             }
         })
     }
 
     // process an exercise event
-    private Exercise(security: Security, execDate: string) {}
+    private Exercise(symbol: Symbol, execDate: string) {
+        Array.from(this.open.entries()).filter( kvp => { kvp[0] === symbol }).forEach( kvp => {
+            this.ClosePosition(kvp[0], 0n, execDate)
+
+            const qty = kvp[1] * 100n
+            const price = StrikePriceFromSymbol(symbol)
+            const underlying = UnderlyingFromSymbol(symbol)
+
+            if(SideFromSymbol(symbol) === Side.Call) {
+                this.past.push(new Transaction(underlying, execDate, price, BuySell.Buy, qty))
+            } else {
+                this.past.push(new Transaction(underlying, execDate, price, BuySell.Sell, qty))
+            }
+        })
+    }
 
     // process an expiration event
-    private Expire(symbol: string, execDate: string) {
+    private Expire(symbol: Symbol, execDate: string) {
         Array.from(this.open.entries()).filter( kvp => { kvp[0] === symbol }).forEach( kvp => {
             this.ClosePosition(kvp[0], 0n, execDate)
         })
