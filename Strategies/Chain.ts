@@ -125,5 +125,5 @@ export function UnderlyingFromSymbol(symbol: Symbol): Symbol {
         return symbol
     }
 
-    return symbol.slice(0, symbol.length -17)
+    return symbol.slice(0, symbol.length -15)
 }

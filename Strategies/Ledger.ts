@@ -5,10 +5,9 @@ import { CSV } from './CSV';
 export enum BuySell {
     Buy = "buy",
     Sell = "sell",
-}
-
-export function Opposite(action: BuySell) {
-    return action === BuySell.Buy ? BuySell.Sell : BuySell.Buy
+    Assign = "assigned",
+    Exercise = "exercise",
+    Expire = "expired",
 }
 
 export class Transaction {
@@ -92,9 +91,10 @@ export class Ledger {
         }
     }
 
-    private ClosePosition(symbol: Symbol, price: bigint, execDate: string) {
+    private ClosePosition(symbol: Symbol, price: bigint, execDate: string, reason: BuySell | undefined = undefined) {
         const quantity = this.open.get(symbol) as bigint
-        this.past.push(new Transaction(symbol, execDate, price, quantity > 0 ? BuySell.Sell : BuySell.Buy, -quantity))
+        const action = (typeof reason !== 'undefined') ? (reason as BuySell) : (quantity > 0 ? BuySell.Sell : BuySell.Buy)
+        this.past.push(new Transaction(symbol, execDate, price, action, -quantity))
         this.open.delete(symbol)
     }
 
@@ -160,7 +160,6 @@ export class Ledger {
         return csv
     }
 
-    // this requires testing
     public ResolveEOD(chain: Chain): void {
         this.OpenPositions().forEach( position => {
             const symbol = position[0]
@@ -170,7 +169,7 @@ export class Ledger {
 
             if( side !== Side.Underlying && dte < 1 ) {
                 const strikePrice = StrikePriceFromSymbol(symbol)
-                const otm = side === Side.Call ? strikePrice >= chain.price : strikePrice >= chain.price
+                const otm = side === Side.Call ? strikePrice >= chain.price : strikePrice <= chain.price
                 if( !otm ) {
                     this.Assign(symbol, chain.timestamp)
                 } else {
@@ -185,42 +184,36 @@ export class Ledger {
 
     // process an assignment event
     private Assign(symbol: Symbol, execDate: string) {
-        Array.from(this.open.entries()).filter( kvp => { kvp[0] === symbol }).forEach( kvp => {
-            this.ClosePosition(kvp[0], 0n, execDate)
+        Array.from(this.open.entries()).filter( kvp => kvp[0] === symbol ).forEach( kvp => {
+            this.ClosePosition(kvp[0], 0n, execDate, BuySell.Assign)
 
-            const qty = kvp[1] * 100n
+            const qty = -1n * kvp[1] * 100n
             const price = StrikePriceFromSymbol(symbol)
             const underlying = UnderlyingFromSymbol(symbol)
+            const action = SideFromSymbol(symbol) === Side.Call ? BuySell.Sell : BuySell.Buy
 
-            if(SideFromSymbol(symbol) === Side.Call) {
-                this.past.push(new Transaction(underlying, execDate, price, BuySell.Sell, qty))
-            } else {
-                this.past.push(new Transaction(underlying, execDate, price, BuySell.Buy, qty))
-            }
+            this.past.push(new Transaction(underlying, execDate, price, action, qty))
         })
     }
 
     // process an exercise event
     private Exercise(symbol: Symbol, execDate: string) {
-        Array.from(this.open.entries()).filter( kvp => { kvp[0] === symbol }).forEach( kvp => {
-            this.ClosePosition(kvp[0], 0n, execDate)
+        Array.from(this.open.entries()).filter( kvp => kvp[0] === symbol ).forEach( kvp => {
+            this.ClosePosition(kvp[0], 0n, execDate, BuySell.Exercise)
 
             const qty = kvp[1] * 100n
             const price = StrikePriceFromSymbol(symbol)
             const underlying = UnderlyingFromSymbol(symbol)
+            const action = SideFromSymbol(symbol) === Side.Call ? BuySell.Buy : BuySell.Sell
 
-            if(SideFromSymbol(symbol) === Side.Call) {
-                this.past.push(new Transaction(underlying, execDate, price, BuySell.Buy, qty))
-            } else {
-                this.past.push(new Transaction(underlying, execDate, price, BuySell.Sell, qty))
-            }
+            this.past.push(new Transaction(underlying, execDate, price, action, qty))
         })
     }
 
     // process an expiration event
     private Expire(symbol: Symbol, execDate: string) {
-        Array.from(this.open.entries()).filter( kvp => { kvp[0] === symbol }).forEach( kvp => {
-            this.ClosePosition(kvp[0], 0n, execDate)
+        Array.from(this.open.entries()).filter( kvp => kvp[0] === symbol ).forEach( kvp => {
+            this.ClosePosition(kvp[0], 0n, execDate, BuySell.Expire)
         })
     }
 

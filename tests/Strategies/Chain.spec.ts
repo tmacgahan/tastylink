@@ -29,7 +29,7 @@ export function BuildTestExpiration() {
 }
 
 export function BuildTestChain() {
-    return new Chain(timestamp, "SPY", 456n, [BuildTestExpiration()])
+    return new Chain(timestamp, "SPY", 45600n, [BuildTestExpiration()])
 }
 
 describe('Option', () => {

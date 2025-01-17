@@ -71,4 +71,36 @@ describe('Ledger', () => {
             "SPY241123P00455000, 2024-11-24, 82, sell, 2, 164"
         )
     })
+
+    it('processes assignment properly', () => {
+        const ledger = new Ledger()
+        ledger.Sell(call, "2024-11-23", AveragePrice(call), 1n)
+        ledger.ResolveEOD(chain)
+
+        const itmPut = chain.expirations[0].strikeList[2].put as Security
+        ledger.Sell(itmPut, "2024-11-23", AveragePrice(itmPut), 1n)
+        ledger.ResolveEOD(chain)
+        
+        expect(ledger.ToCSV().toString()).to.equal(
+            "symbol, execution date, price, action, quantity, value\n" +
+            "SPY241123C00455000, 2024-11-23, 122, sell, 1, 122\n" +
+            "SPY241123C00455000, 2024-11-23, 0, assigned, 1, 0\n" +
+            "SPY, 2024-11-23, 45500, sell, 100, 4550000\n" +
+            "SPY241123P00457000, 2024-11-23, 122, sell, 1, 122\n" +
+            "SPY241123P00457000, 2024-11-23, 0, assigned, 1, 0\n" +
+            "SPY, 2024-11-23, 45700, buy, 100, -4570000"
+        )
+    })
+
+    it('processes expiration properly', () => {
+        const ledger = new Ledger()
+        ledger.Sell(put, "2024-11-23", AveragePrice(put), 1n)
+        ledger.ResolveEOD(chain)
+
+        expect(ledger.ToCSV().toString()).to.equal(
+            "symbol, execution date, price, action, quantity, value\n" +
+            "SPY241123P00455000, 2024-11-23, 82, sell, 1, 82\n" +
+            "SPY241123P00455000, 2024-11-23, 0, expired, 1, 0"
+        )
+    })
 })
