@@ -29,4 +29,4 @@ MarketTimestampsBetween( startDate, dayBeforeLast ).sort().forEach( timestamp =>
 })
 
 console.log(strategy.ToCSV().toString())
-console.log(`total ${strategy.AccountValue(LoadChain("SPY", endDate))}`)
+console.log(`total $${Number(strategy.AccountValue(LoadChain("SPY", endDate))) / 100}`)

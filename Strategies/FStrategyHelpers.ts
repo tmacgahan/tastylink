@@ -8,7 +8,8 @@ import { TimestampToDte } from '../Utils/DateFunctions';
  */
 export function FindStrike(expiration: Expiration, price: bigint, moneyness: bigint = 0n): Strike {
     for( let ii = 0; ii < expiration.strikes.length; ii++ ) {
-        if( price <= expiration.strikes[ii] + moneyness ) {
+        // console.log( `${price} / ${expiration.strikes[ii]} / ${moneyness} || ${expiration.strikes[ii] + moneyness}` )
+        if( price + moneyness <= expiration.strikes[ii] ) {
             return expiration.map.get(expiration.strikes[ii]) as Strike
         }
     }

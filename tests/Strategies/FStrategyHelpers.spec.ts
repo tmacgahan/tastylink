@@ -46,5 +46,8 @@ describe('Strategy Functions', () => {
         expect(FindStrike(exp, 76n * 100n, 0n).price).to.equal(76n * 100n)
         expect(FindStrike(exp, 80n * 100n, 0n).price).to.equal(80n * 100n)
         expect(FindStrike(exp, 125n * 100n, 0n).price).to.equal(125n * 100n)
+
+        expect(FindStrike(exp, 100n * 100n, -100n).price).to.equal(99n * 100n)
+        expect(FindStrike(exp, 100n * 100n, 100n).price).to.equal(101n * 100n)
     })
 })
