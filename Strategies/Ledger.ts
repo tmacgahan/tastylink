@@ -37,6 +37,10 @@ export class Ledger {
     private past: Transaction[] = new Array<Transaction>()
 
     private FindPrice(chain: Chain, symbol: string): bigint {
+        if(SideFromSymbol(symbol) === Side.Underlying) {
+            return chain.price
+        }
+
         let exp = chain.dateMap.get(TimestampFromSymbol(symbol)) as Expiration
 
         if(typeof exp === "undefined") {
@@ -61,33 +65,33 @@ export class Ledger {
         return AveragePrice(opt)
     }
 
-    public Buy(security: Security, execDate: string, price: bigint, quantity: bigint) {
-        this.past.push(new Transaction(security.symbol, execDate, price, BuySell.Buy, quantity))
+    public Buy(symbol: Symbol, execDate: string, price: bigint, quantity: bigint) {
+        this.past.push(new Transaction(symbol, execDate, price, BuySell.Buy, quantity))
 
-        if(this.open.has(security.symbol)) {
-            const owned = this.open.get(security.symbol) as bigint
+        if(this.open.has(symbol)) {
+            const owned = this.open.get(symbol) as bigint
             if( owned === -quantity ) {
-                this.open.delete(security.symbol)
+                this.open.delete(symbol)
             } else {
-                this.open.set(security.symbol, owned + quantity)
+                this.open.set(symbol, owned + quantity)
             }
         } else {
-            this.open.set(security.symbol, quantity)
+            this.open.set(symbol, quantity)
         }
     }
 
-    public Sell(security: Security, execDate: string, price: bigint, quantity: bigint) {
-        this.past.push(new Transaction(security.symbol, execDate, price, BuySell.Sell, quantity))
+    public Sell(symbol: Symbol, execDate: string, price: bigint, quantity: bigint) {
+        this.past.push(new Transaction(symbol, execDate, price, BuySell.Sell, quantity))
 
-        if(this.open.has(security.symbol)) {
-            const owned = this.open.get(security.symbol) as bigint
+        if(this.open.has(symbol)) {
+            const owned = this.open.get(symbol) as bigint
             if( owned === quantity ) {
-                this.open.delete(security.symbol)
+                this.open.delete(symbol)
             } else {
-                this.open.set(security.symbol, owned - quantity)
+                this.open.set(symbol, owned - quantity)
             }
         } else {
-            this.open.set(security.symbol, -quantity)
+            this.open.set(symbol, -quantity)
         }
     }
 
@@ -144,6 +148,7 @@ export class Ledger {
     }
 
     public TotalPNL(chain: Chain): bigint {
+        //console.log( `realized: ${this.RealizedPNL()}, open: ${this.OpenPositionValue(chain)}, basis: ${this.OpenPositionBasis()}` )
         return this.RealizedPNL() + (this.OpenPositionValue(chain) - this.OpenPositionBasis())
     }
 
@@ -190,9 +195,12 @@ export class Ledger {
             const qty = -1n * kvp[1] * 100n
             const price = StrikePriceFromSymbol(symbol)
             const underlying = UnderlyingFromSymbol(symbol)
-            const action = SideFromSymbol(symbol) === Side.Call ? BuySell.Sell : BuySell.Buy
 
-            this.past.push(new Transaction(underlying, execDate, price, action, qty))
+            if( SideFromSymbol(symbol) === Side.Call ) {
+                this.Sell(underlying, execDate, price, qty)
+            } else {
+                this.Buy(underlying, execDate, price, qty)
+            }
         })
     }
 
@@ -204,9 +212,12 @@ export class Ledger {
             const qty = kvp[1] * 100n
             const price = StrikePriceFromSymbol(symbol)
             const underlying = UnderlyingFromSymbol(symbol)
-            const action = SideFromSymbol(symbol) === Side.Call ? BuySell.Buy : BuySell.Sell
 
-            this.past.push(new Transaction(underlying, execDate, price, action, qty))
+            if( SideFromSymbol(symbol) === Side.Call ) {
+                this.Buy(underlying, execDate, price, qty)
+            } else {
+                this.Sell(underlying, execDate, price, qty)
+            }
         })
     }
 

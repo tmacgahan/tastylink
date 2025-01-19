@@ -4,6 +4,8 @@ import { Delay } from './Utils/Delay'
 import { LoadChain } from './Strategies/Chain'
 import { BuyAndHoldCalls } from './Strategies/BuyAndHoldCalls'
 import { RollATMStrangleDaily } from './Strategies/RollATMStrangleDaily'
+import { Wheel } from './Strategies/Wheel'
+
 
 function GenerateChains(fromDate: string, toDate: string, symbol: string) {
   MarketTimestampsBetween(fromDate, toDate).sort().forEach( timestamp => {
@@ -16,13 +18,15 @@ function GenerateChains(fromDate: string, toDate: string, symbol: string) {
 //DownloadChain("SPY", "2024-11-11")
 //GenerateChains( "2024-09-12", "2024-12-19", "SPY" )
 
-const startDate: string = "2024-10-25"
+const startDate: string = "2024-10-01"
 const endDate: string = "2024-12-19"
 const dayBeforeLast: string = Timestamp(PreviousMarketDay(TimestampToDate(endDate)))
-let strategy = new RollATMStrangleDaily()
-//MarketTimestampsBetween( startDate, dayBeforeLast ).forEach( stamp => console.log(stamp) )
+let strategy = new Wheel()
 MarketTimestampsBetween( startDate, dayBeforeLast ).sort().forEach( timestamp => {
-  strategy.MaintainPosition(timestamp, LoadChain("SPY", timestamp))
+  const chain = LoadChain("SPY", timestamp)
+  strategy.MaintainPosition(timestamp, chain)
+  strategy.ResolveEOD(chain)
 })
 
-console.log(strategy.AccountValue(LoadChain("SPY", endDate)))
+console.log(strategy.ToCSV().toString())
+console.log(`total ${strategy.AccountValue(LoadChain("SPY", endDate))}`)
