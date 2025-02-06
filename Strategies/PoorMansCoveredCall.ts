@@ -15,8 +15,8 @@ export class RollATMStrangleDaily extends IMarketStrategy {
             const longCall = longDateStrike.call as Security
             const shortCall = shortDateStrike.call as Security
 
-            this.ledger.Buy(longCall, date, AveragePrice(longCall), 1n)
-            this.ledger.Sell(shortCall, date, AveragePrice(shortCall), 1n)
+            this.ledger.Buy(longCall.symbol, date, AveragePrice(longCall), 1n)
+            this.ledger.Sell(shortCall.symbol, date, AveragePrice(shortCall), 1n)
         }
 
         // check to see how much time is left on expiration

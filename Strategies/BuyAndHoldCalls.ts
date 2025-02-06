@@ -8,7 +8,7 @@ export class BuyAndHoldCalls extends IMarketStrategy {
     public MaintainPosition(date: string, chain: Chain) {
         if(this.ledger.OpenPositions().length == 0) {
             const call = FindStrike(chain.expirations[chain.expirations.length - 1], chain.price).call as Security
-            this.ledger.Buy(call, date, AveragePrice(call), 1n)
+            this.ledger.Buy(call.symbol, date, AveragePrice(call), 1n)
         }
     }
 }

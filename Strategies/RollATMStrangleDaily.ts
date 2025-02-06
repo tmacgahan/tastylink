@@ -13,7 +13,7 @@ export class RollATMStrangleDaily extends IMarketStrategy {
         let strike = FindStrike(chain.expirations[1], chain.price)
         let call = strike.call as Security
         let put = strike.put as Security
-        this.ledger.Sell(call, date, AveragePrice(call), 1n)
-        this.ledger.Sell(put, date, AveragePrice(put), 1n)
+        this.ledger.Sell(call.symbol, date, AveragePrice(call), 1n)
+        this.ledger.Sell(put.symbol, date, AveragePrice(put), 1n)
     }
 }
